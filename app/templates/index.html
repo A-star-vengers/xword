@@ -1,0 +1,11 @@
+{% extends 'layout.html' %}
+{% block mainbody %}
+      <div class="starter-template">
+        <h1>Xword: A Social Crossword Application</h1>
+        {% if not message %}
+        <p class="lead">Xword is a platform for crossword lovers to explore their favorite game together.</p>
+        {% else %}
+        <p class="lead">{{ message }}<br></p>
+        {% endif %}
+      </div>
+{% endblock %}

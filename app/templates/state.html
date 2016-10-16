@@ -1,0 +1,23 @@
+{% extends 'layout.html' %}
+{% block mainbody %}
+      <div class="starter-template">
+        <h1>Bootstrap starter template</h1>
+        <p class="lead">Modify and observe a simple state here.</p>
+        <p class="lead">Current value of the state is:</p>
+        {{ state }}
+        <p class="lead">Enter a value into the form below if you want to change it.</p>
+		
+        <form id="state-form" action="/state" method="post" role="form" style="display: block;">
+            <div class="form-group">
+                <input type="text" name="state" id="state" tabindex="1" class="form-control" placeholder="new state" value="">
+            </div>
+        </form>
+ 
+<!-- 
+	<form action="." method="POST">
+            <input type="text" name="text">
+            <input type="submit" name="my-form" value="Send">
+         </form>
+-->
+      </div>
+{% endblock %}
