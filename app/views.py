@@ -1,11 +1,12 @@
 from flask import render_template, request, session, redirect, url_for
 from app import app
 from app.db import db
-from app.dbmodels import User, State
+from app.dbmodels import User, HintAnswerPair
 from app.util import validate_table, getsalt, createhash
 
 register_form = ['username', 'email', 'password', 'confirm']
 login_form = ['username', 'password']
+submit_form = ['hint', 'answer']  # , 'theme']
 
 app.secret_key = 'foobar'
 
@@ -13,29 +14,6 @@ app.secret_key = 'foobar'
 @app.route('/')
 def index():
     return render_template('index.html', session=session)
-
-
-@app.route('/state', methods=['GET', 'POST'])
-def state():
-
-    if 'logged_in' not in session:
-        return redirect(url_for('index'))
-
-    state = 'foo'
-
-    state_entry = State.query.filter_by(uname=session['username']).first()
-
-    if state_entry is not None:
-        state = state_entry.state
-
-    if request.method == 'POST':
-        state = request.form['state']
-
-        newState = State(session['username'], state)
-        db.session.add(newState)
-        db.session.commit()
-
-    return render_template('state.html', state=state)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -56,6 +34,7 @@ def login():
                    user_exists.password:
                     session['logged_in'] = True
                     session['username'] = username
+                    session['uid'] = str(user_exists.uid)
                     return render_template(
                                             'index.html',
                                             message='Login successful'
@@ -106,3 +85,37 @@ def register():
             return redirect(url_for('login'))
     else:
         return render_template('login.html')
+
+
+@app.route('/submit_pair', methods=['GET', 'POST'])
+def submit_pair():
+
+    # Probably shoudl use decorator so we don't have to write this
+    # every time
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+
+    if request.method == 'GET':
+        return render_template('submit.html')
+
+    if request.method == 'POST':
+        if validate_table(submit_form, request.form):
+
+            hint = request.form['hint']
+            answer = request.form['answer']
+
+            # print "Hint: " + str(hint)
+            # print "Answer: " + str(answer)
+
+            newPair = HintAnswerPair(
+                                     answer, hint,
+                                     None, session['uid'],
+                                    )
+            db.session.add(newPair)
+            db.session.commit()
+            return render_template(
+                                    'index.html',
+                                    message='Submission successful'
+                                  )
+
+    return redirect(url_for('login'))

@@ -65,9 +65,9 @@ class RegisterAndLoginTest(AppTest):
 
         assert 'Login successful' in response.data
 
-class StateTest(AppTest):
+class SubmitHintAnswerPairTest(AppTest):
 
-    def test_state_after_logout(self):
+    def test_submit_pair(self):
 
         response = self.client.post('/register', data = dict(
                         username='test',
@@ -85,30 +85,14 @@ class StateTest(AppTest):
 
         assert 'Login successful' in response.data
 
-        response = self.client.get('/state', follow_redirects=True)
-
-        assert 'foo' in response.data
-
-        response = self.client.post('/state', data = dict(
-                        state='changed state'
+        response = self.client.post('/submit_pair', data=dict(
+                        hint="You took these in school.",
+                        answer="exams"
         ), follow_redirects=True)
 
-        assert 'changed state' in response.data
+        assert 'Submission successful' in response.data
 
-        response = self.client.get('/logout', follow_redirects=True)
 
-        assert 'Login' in response.data
-
-        response = self.client.post('/login', data = dict(
-                        username='test',
-                        password='test'
-        ), follow_redirects=True)
-
-        assert 'Login successful' in response.data
-
-        response = self.client.get('/state', follow_redirects=True)
-
-        assert 'changed state' in response.data
 
 if __name__ == '__main__':
     unittest.main()

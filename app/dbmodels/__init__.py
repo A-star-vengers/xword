@@ -6,7 +6,9 @@ class User(db.Model):
        contains all user data in the application.     
        UID | Username | Password | IsAdmin"""
     __tablename__ = "user"
-    uid = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    __table_args__ = {'sqlite_autoincrement' : True}
+
+    uid = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
     uname = db.Column(db.String(45), unique=True)
     #Allow more than one account with the same email
     #Also max out email length at 255 characters
@@ -20,15 +22,92 @@ class User(db.Model):
         self.salt = salt
         self.password = password
 
-class State(db.Model):
-    """Class to represent the State table. This table
-       contains the current state value for a particular user
-    """
-    __tablename__ = "state"
-    sid = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    uname = db.Column(db.String(45), db.ForeignKey("user.uname", onupdate="cascade"), nullable=False)
-    state = db.Column(db.String(255), unique=False)
+class XwordSourceSite(db.Model):
+    """Class to contain third party crossword source that can be used to assign
+       as source of a given hint/answer pair."""
+    __tablename__ = "xword_source"
+    __table_args__ = {'sqlite_autoincrement' : True}
 
-    def __init__(self, uname, state):
-        self.uname = uname
-        self.state = state
+    xid = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
+    wsite = db.Column(db.String(100), unique=True)
+
+    def __init__(self, wsite):
+        self.wsite = wsite
+
+class Theme(db.Model):
+    """Class to contain list of themes of which hint/answer pairs are optionally
+       assigned to."""
+    __tablename__ = "theme"
+    __table_args__ = {'sqlite_autoincrement' : True}
+
+    tid = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
+    theme = db.Column(db.String(20), unique=True)
+
+    def __init__(self, theme):
+        self.theme = theme
+
+class HintAnswerPair(db.Model):
+    """Class to represent the Hint/Answer pairs. These pairs are used
+       in the construction of new crossword puzzles"""
+    __tablename__ = "pairs"
+    __table_args__ = {'sqlite_autoincrement' : True}
+
+    haid = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
+    answer = db.Column(db.String(32), unique=False)
+    hint = db.Column(db.String(100), unique=False)
+    #The source can be a username or a website, one of which should be NULL since it only makes sense for the 
+    #hint/answer pair to come from one source (user or third party source)
+    #Could probably have these just point to the IDs into the word_source or the user table
+    source = db.Column(db.Integer, db.ForeignKey("xword_source.xid"), nullable=True)
+    author = db.Column(db.Integer, db.ForeignKey("user.uid"), nullable=True)
+    #Optional theme to assign to hint/answer pair, could also point to the theme id rather than the string itself
+    #theme = db.Column(db.Integer, db.ForeignKey("theme.tid"), nullable=True)
+
+    def __init__(self, answer, hint, source, author):#, theme):
+        self.answer = answer
+        self.hint = hint
+        self.source = source
+        self.author = author
+        #self.theme = theme
+
+class PuzzleHintsMapTable(db.Model):
+    """Class to represent the container relationship between the crossword puzzle and a list
+       of hint/answer pairs used to create the puzzle."""
+    __tablename__ = "puzzle_hint_map"
+    __table_args__ = {'sqlite_autoincrement' : True}
+
+    #Contain the crossword id foreign key to use to map a crossword puzzle to a list of hints
+    cid = db.Column(db.Integer, db.ForeignKey("crosswords.cid"), primary_key=True)
+    haid = db.Column(db.Integer, db.ForeignKey("pairs.haid"), primary_key=True)
+    #Number of hint in puzzle, e.g. 1 in 1 Across
+    hint_num = db.Column(db.Integer)
+    #Down vs Across
+    axis = db.Column(db.String(6))
+    #Start cell for the first letter of the hint
+    cell_across = db.Column(db.Integer)
+    cell_down = db.Column(db.Integer)
+
+    def __init__(self, cid, haid):
+        self.cid = cid
+        self.haid = haid
+
+class CrosswordPuzzle(db.Model):
+    """Class to represent a crossword puzzle that has been completed at least once
+       by a user. It will contain relationships that describe the layout, hints/answer
+       pairs used to construct the puzzle, the ratings from users, and the ranking compared
+       to other crossword puzzles"""
+    __tablename__ = "crosswords"
+    __table_args__ = {'sqlite_autoincrement' : True}
+
+    cid = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
+    #Number of hints in the puzzle
+    num_hints = db.Column(db.Integer)
+    #Number of cells vertically in the puzzle
+    num_cells_down = db.Column(db.Integer)
+    #Number of cells horizontally in the puzzle
+    num_cells_across = db.Column(db.Integer)
+
+    def __init__(self, num_hints, num_cells_down, num_cells_across):
+        self.num_hints = num_hints
+        self.num_cells_down = num_cells_down
+        self.num_cells_across = num_cells_across
