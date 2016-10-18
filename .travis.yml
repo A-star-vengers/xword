@@ -5,6 +5,9 @@ python:
 install: pip install -r requirements.txt
 before_script:
   - flake8 app
+  - flake8 app/dbmodels
+  - flake8 test.py
+  - flake8 run.py
 script: python test.py -v
 branches:
   only:
