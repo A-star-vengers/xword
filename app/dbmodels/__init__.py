@@ -91,6 +91,58 @@ class PuzzleHintsMapTable(db.Model):
         self.cid = cid
         self.haid = haid
 
+class UserPuzzleTimes(db.Model):
+    """Class to contain the relation between user, puzzle, and time
+       it took the user to complete the puzzle.
+    """
+    __tablename__ = "puzzle_times"
+    __table_args__ = {'sqlite_autoincrement' : True}
+
+    cid = db.Column(db.Integer, db.ForeignKey("crosswords.cid"), primary_key=True)
+    uid = db.Column(db.Integer, db.ForeignKey("user.uid"), primary_key=True)
+    time = db.Column(db.DateTime, unique=False)
+
+    def __init__(self, cid, uid, time):
+
+        self.cid = cid
+        self.uid = uid
+        self.time = time
+
+class UserPuzzleRatings(db.Model):
+    """Class to represent the relation between user, puzzle, and the rating
+       the user gave the puzzle after completing it.
+    """
+    __tablename__ = "puzzle_ratings"
+    __table_args__ = {'sqlite_autoincrement' : True}
+
+    cid = db.Column(db.Integer, db.ForeignKey("crosswords.cid"), primary_key=True)
+    uid = db.Column(db.Integer, db.ForeignKey("user.uid"), primary_key=True)
+
+    # Rating should be between 0 and 5
+    rating = db.Column(db.Integer, unique=False)
+
+    def __init__(self, cid, uid, rating):
+
+        self.cid = cid
+        self.uid = uid
+        self.rating = rating
+
+class UserCreatedPuzzles(db.Model):
+    """Class to represent the relation between a user and a crossword puzzle he or she
+       has created.
+    """
+    __tablename__ = "user_puzzles"
+    __table_args__ = {'sqlite_autoincrement' : True}
+
+    # More than one user should not be able to construct the same puzzle
+    cid = db.Column(db.Integer, db.ForeignKey("crosswords.cid"), primary_key=True, unique=True)
+    uid = db.Column(db.Integer, db.ForeignKey("user.uid"), unique=False)
+
+    def __init__(self, cid, uid):
+
+        self.cid = cid
+        self.uid = uid
+
 class CrosswordPuzzle(db.Model):
     """Class to represent a crossword puzzle that has been completed at least once
        by a user. It will contain relationships that describe the layout, hints/answer
