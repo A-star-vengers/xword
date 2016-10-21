@@ -32,7 +32,7 @@ class LoginTest(AppTest):
                         password='test2'
         ), follow_redirects=True)
 
-        assert 'Login successful' not in response.data
+        assert 'Login successful' not in response.data.decode()
 
 
 class RegisterTest(AppTest):
@@ -46,7 +46,7 @@ class RegisterTest(AppTest):
                         confirm='test'
         ), follow_redirects=True)
 
-        assert 'Registration successful' in response.data
+        assert 'Registration successful' in response.data.decode()
 
 
 class RegisterAndLoginTest(AppTest):
@@ -60,14 +60,14 @@ class RegisterAndLoginTest(AppTest):
                         confirm='test'
         ), follow_redirects=True)
 
-        assert 'Registration successful' in response.data
+        assert 'Registration successful' in response.data.decode()
 
         response = self.client.post('/login', data=dict(
                         username='test',
                         password='test'
         ), follow_redirects=True)
 
-        assert 'Login successful' in response.data
+        assert 'Login successful' in response.data.decode()
 
 
 class SubmitHintAnswerPairTest(AppTest):
@@ -81,21 +81,21 @@ class SubmitHintAnswerPairTest(AppTest):
                         confirm='test'
         ), follow_redirects=True)
 
-        assert 'Registration successful' in response.data
+        assert 'Registration successful' in response.data.decode()
 
         response = self.client.post('/login', data=dict(
                         username='test',
                         password='test'
         ), follow_redirects=True)
 
-        assert 'Login successful' in response.data
+        assert 'Login successful' in response.data.decode()
 
         response = self.client.post('/submit_pair', data=dict(
                         hint="You took these in school.",
                         answer="exams"
         ), follow_redirects=True)
 
-        assert 'Submission successful' in response.data
+        assert 'Submission successful' in response.data.decode()
 
 
 if __name__ == '__main__':

@@ -9,6 +9,4 @@ argparse==1.2.1
 click==6.6
 itsdangerous==0.24
 pycrypto==2.6.1
-pysqlite==2.8.3
-wsgiref==0.1.2
 flake8==3.0.4
