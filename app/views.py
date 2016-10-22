@@ -106,16 +106,32 @@ def submit_pair():
             hint = request.form['hint']
             answer = request.form['answer']
 
-            newPair = HintAnswerPair(
-                                     answer, hint,
-                                     session['uid']
-                                    )
-            db.session.add(newPair)
-            db.session.commit()
-            return render_template(
-                                    'index.html',
-                                    message='Submission successful'
-                                  )
+            # Check if hint/answer pair already exists
+            # in the database
+
+            pair_exists = HintAnswerPair.query.filter(
+                                            HintAnswerPair.hint == hint,
+                                            HintAnswerPair.answer == answer
+                                                        ).scalar()
+
+            if pair_exists is None:
+
+                newPair = HintAnswerPair(
+                                         answer, hint,
+                                         session['uid']
+                                        )
+                db.session.add(newPair)
+                db.session.commit()
+                return render_template(
+                                        'index.html',
+                                        message='Submission successful'
+                                      )
+            else:
+                message = "Error: Hint/Answer pair already exists."
+                return render_template(
+                                        'index.html',
+                                        message=message
+                                      )
 
     return redirect(url_for('login'))
 
