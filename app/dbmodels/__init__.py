@@ -58,15 +58,14 @@ class HintAnswerPair(db.Model):
     #The source can be a username or a website, one of which should be NULL since it only makes sense for the 
     #hint/answer pair to come from one source (user or third party source)
     #Could probably have these just point to the IDs into the word_source or the user table
-    source = db.Column(db.Integer, db.ForeignKey("xword_source.xid"), nullable=True)
+    #source = db.Column(db.Integer, db.ForeignKey("xword_source.xid"), nullable=True)
     author = db.Column(db.Integer, db.ForeignKey("user.uid"), nullable=True)
     #Optional theme to assign to hint/answer pair, could also point to the theme id rather than the string itself
     #theme = db.Column(db.Integer, db.ForeignKey("theme.tid"), nullable=True)
 
-    def __init__(self, answer, hint, source, author):#, theme):
+    def __init__(self, answer, hint, author):#, theme):
         self.answer = answer
         self.hint = hint
-        self.source = source
         self.author = author
         #self.theme = theme
 
