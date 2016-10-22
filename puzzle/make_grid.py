@@ -176,6 +176,18 @@ def try_to_place_word(word, grid):
         grid = place_word_safe(word, sp, ep, grid)
     return dict(grid=grid, was_placed=was_placed)
 
+    def initialise_word_list_object(word_list):
+        num_word = len(word_list)
+        xcoord = [None] * num_word
+        ycoord = [None] * num_word
+        orientation = [None] * num_word
+
+        return dict(words=word_list,
+                    index=range(num_word),
+                    xcoord=xcoord,
+                    ycoord=ycoord,
+                    orientation=orientation)
+
 
 if __name__ == "__main__":
     random.seed(0)
@@ -189,7 +201,6 @@ if __name__ == "__main__":
     #             'caramel', 'coral', 'dawn', 'pitch', 'fjord', 'lip', 'lime', 'mist', 'plague', 'yarn', 'snicker']
 
     word_list = ['saffron', 'pumpernickel', 'leaven', 'coda', 'syncopation', 'albatross', 'harp', 'piston']
-
 
     remaining_word_set = set(word_list)
     longest_word = max(remaining_word_set, key=len)
