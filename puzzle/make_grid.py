@@ -105,14 +105,19 @@ def get_random_start_point(grid):
     proposal = [random.randrange(0, d0), random.randrange(0, d1)]
     return proposal
 
-def find_open_location_for_word_no_clashes(grid, word):
+
+def find_open_location_for_word_no_clashes(grid, answers, word):
     max_tries = 100
     tries = 0
 
     while True:
         location = find_open_location_for_word(grid, word)
         startpoint = location["point"]
-        endpoint = get_word_endpoint(word, startpoint, location["orientation"])
+        orientation = location["orientation"]
+        endpoint = get_word_endpoint(word, startpoint, orientation)
+        points = enumerate_indices_between(startpoint, endpoint)
+        same_orientation_and_in_startpoint = [[index, value] for index, value in enumerate(answers["coordinates"]) if orientation == answers["orientation"][index]]
+
         is_done = check_word_is_placeable(word, startpoint, endpoint, grid)
 
         if is_done:
@@ -124,6 +129,7 @@ def find_open_location_for_word_no_clashes(grid, word):
     endpoint = get_word_endpoint(word, startpoint, location["orientation"])
     assert check_word_is_placeable(word, startpoint, endpoint, grid), "Should not be overriding letter"
     return location
+
 
 def find_open_location_for_word(grid, word): # just guarantees that the endpoint lies on the board
     is_filled = grid["is_filled"]
@@ -170,19 +176,22 @@ def total_overlap_with_grid(word, grid, startpoint, orientation):
 def argmax(iterable):
     return max(enumerate(iterable), key=lambda x: x[1])[0]
 
+# http://stackoverflow.com/questions/642763/python-intersection-of-two-lists
+def intersect(a, b):
+    return list(set(a) & set(b))
+
+
 def initialise_answers(word_list):
     assert len(word_list) == len(set(word_list)), "Duplicate answers not supported"
 
     num_word = len(word_list)
-    xcoord = [None] * num_word
-    ycoord = [None] * num_word
+    coordinates = [[None, None]] * num_word
     orientation = [None] * num_word
     is_placed = [False] * num_word
 
     return dict(words=word_list,
                 index=range(num_word),
-                xcoord=xcoord,
-                ycoord=ycoord,
+                coordinates=coordinates,
                 orientation=orientation,
                 is_placed=is_placed)
 
@@ -209,16 +218,13 @@ def initialise_board_for_answers(grid_width, grid_height, answers):
 
 def update_answers_with_placed_word(word, start_ind, orientation, answers):
     index = answers["words"].index(word)
-    answers["xcoord"][index] = start_ind[0]
-    answers["ycoord"][index] = start_ind[1]
+    answers["coordinates"][index] = start_ind
     answers["orientation"][index] = orientation
     answers["is_placed"][index] = True
-
     return answers
 
 
 def place_word(grid, answers):
-
     if all(answers["is_placed"]):
         was_placed = False
     elif not any(answers["is_placed"]):
@@ -233,7 +239,7 @@ def place_word(grid, answers):
         while any(is_tryable):
             word = max(get_tryable_words(answers, is_tryable), key=len)
 
-            sw = place_subsequent_word(grid, word)
+            sw = place_subsequent_word(grid, answers, word)
             start_ind = sw["start_ind"]
             orientation = sw["orientation"]
             was_placed = sw["was_placed"]
@@ -267,12 +273,12 @@ def place_first_word(grid, word):
     return dict(start_ind=start_ind, orientation=orientation, was_placed=was_placed)
 
 
-def place_subsequent_word(grid, word):
+def place_subsequent_word(grid, answers, word):
     max_tries = 500
     potential_starts = [None] * max_tries
     overlaps = [0] * max_tries
     for idx in range(max_tries): # idx = 2
-        potential_starts[idx] = find_open_location_for_word_no_clashes(grid, word)
+        potential_starts[idx] = find_open_location_for_word_no_clashes(grid, answers, word)
         startpoint = potential_starts[idx]["point"]
         orientation = potential_starts[idx]["orientation"]
 
@@ -304,10 +310,10 @@ if __name__ == "__main__":
     grid_height = 15
 
     # Word list from: http://bryanhelmig.com/python-crossword-puzzle-generator/
-    # word_list = ['saffron', 'pumpernickel', 'leaven', 'coda', 'paladin', 'syncopation', 'albatross', 'harp', 'piston',
-    #             'caramel', 'coral', 'dawn', 'pitch', 'fjord', 'lip', 'lime', 'mist', 'plague', 'yarn', 'snicker']
+    word_list = ['saffron', 'pumpernickel', 'leaven', 'coda', 'paladin', 'syncopation', 'albatross', 'harp', 'piston',
+                'caramel', 'coral', 'dawn', 'pitch', 'fjord', 'lip', 'lime', 'mist', 'plague', 'yarn', 'snicker']
 
-    word_list = ['saffron', 'pumpernickel', 'leaven', 'coda', 'syncopation', 'albatross', 'harp', 'piston']
+    # word_list = ['saffron', 'pumpernickel', 'leaven', 'coda', 'syncopation', 'albatross', 'harp', 'piston']
 
     answers = initialise_answers(word_list)
     grid = initialise_board_for_answers(grid_width, grid_height, answers)
@@ -317,6 +323,7 @@ if __name__ == "__main__":
         out = place_word(grid, answers)
         grid = out["grid"]
         print_grid(grid)
+        print("   ")
         answers = out["answers"]
         was_placed = out["was_placed"]
         if not was_placed:
