@@ -306,6 +306,7 @@ def random_puzzle_id():
     return random.choice(all_ids)[0]
 
 
+
 @app.route("/play_puzzle", methods=['GET', 'POST'])
 def play_puzzle():
     if 'logged_in' not in session:
