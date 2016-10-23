@@ -3,7 +3,7 @@ from app import app
 from app.db import db
 from app.dbmodels import User, HintAnswerPair
 from app.util import validate_table, getsalt, createhash
-
+from functools import wraps
 from os import urandom
 
 register_form = ['username', 'email', 'password', 'confirm']
@@ -11,6 +11,14 @@ login_form = ['username', 'password']
 submit_form = ['hint', 'answer']  # , 'theme']
 
 app.secret_key = urandom(24)
+
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if 'logged_in' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated
 
 
 @app.route('/')
@@ -50,11 +58,8 @@ def login():
 
 
 @app.route('/logout', methods=['GET'])
+@login_required
 def logout():
-
-    if 'logged_in' not in session:
-        return redirect(url_for('index'))
-
     session.clear()
     return redirect(url_for('index'))
 
@@ -90,13 +95,8 @@ def register():
 
 
 @app.route('/submit_pair', methods=['GET', 'POST'])
+@login_required
 def submit_pair():
-
-    # Probably shoudl use decorator so we don't have to write this
-    # every time
-    if 'logged_in' not in session:
-        return redirect(url_for('login'))
-
     if request.method == 'GET':
         return render_template('submit.html')
 
@@ -137,10 +137,8 @@ def submit_pair():
 
 
 @app.route("/create_puzzle", methods=['GET', 'POST'])
+@login_required
 def create_puzzle():
-
-    if 'logged_in' not in session:
-        return redirect(url_for('login'))
 
     if request.method == 'GET':
         return render_template('create_puzzle.html')
