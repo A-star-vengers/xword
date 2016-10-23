@@ -1,0 +1,14 @@
+{% extends 'layout.html' %}
+{% block head_extras %}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/puzzle.css') }}">
+    <script>
+        hints = {{ hints|safe }};
+    </script>
+    <script src="{{ url_for('static', filename='js/puzzle.js') }}"></script>
+{% endblock %}
+{% block onload %}
+setupPuzzle('puzzleContainer')
+{% endblock %}
+{% block mainbody %}
+    <div id="puzzleContainer"></div>
+{% endblock %}

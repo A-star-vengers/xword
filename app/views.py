@@ -199,3 +199,31 @@ def create_puzzle():
     # If some unexpected HTTP request type simply
     # redirect to root page
     return redirect(url_for('index'))
+
+@app.route("/play_puzzle", methods=['GET', 'POST'])
+def play_puzzle():
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        assert False, request.form
+
+    hints = [  # TODO: get the puzzle from the database
+        {
+            'direction': 'across',
+            'row': 0,
+            'col': 0,
+            'num': 1,
+            'answer': 'aaa',
+            'hint': 'a'
+        },
+        {
+            'direction': 'down',
+            'row': 0,
+            'col': 0,
+            'num': 2,
+            'answer': 'aaa',
+            'hint': 'b'
+        },
+    ]
+    return render_template('play_puzzle.html', hints=hints)

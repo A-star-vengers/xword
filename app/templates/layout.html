@@ -15,8 +15,10 @@
 
     <!-- Custom styles for this template -->
     <link href="{{ url_for('static', filename='css/starter-template.css') }}" rel="stylesheet">
+    {% block head_extras %}
+    {% endblock %}
   </head>
-  <body>
+  <body onload="{% block onload %}{% endblock %}">
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
         <div class="navbar-header">
