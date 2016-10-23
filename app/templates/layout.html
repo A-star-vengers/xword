@@ -49,10 +49,12 @@
       </div>
     </nav>
 
+    {% block mainbody %}
+    {% endblock %}
+    <!--
     <div class="container">
+    -->
 
-        {% block mainbody %}
-        {% endblock %}
 <!--
       <div class="starter-template">
         <h1>Bootstrap starter template</h1>
@@ -60,7 +62,7 @@
       </div>
 -->
 
-    </div><!-- /.container -->
+    <!-- </div> /.container -->
 
 
     <!-- Bootstrap core JavaScript
@@ -68,7 +70,11 @@
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    {% block jsinclude %}
+    {% endblock %}
+    <!--
     <script src="{{ url_for('static', filename='js/login.js') }}"></script>
     <script src="{{ url_for('static', filename='js/create_puzzle.js') }}"></script>
+    -->
   </body>
 </html>

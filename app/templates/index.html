@@ -1,5 +1,6 @@
 {% extends 'layout.html' %}
 {% block mainbody %}
+<div class="container">
       <div class="starter-template">
         <h1>Xword: A Social Crossword Application</h1>
         {% if not message %}
@@ -8,4 +9,5 @@
         <p class="lead">{{ message }}<br></p>
         {% endif %}
       </div>
+</div>
 {% endblock %}
