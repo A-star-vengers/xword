@@ -12,6 +12,7 @@ submit_form = ['hint', 'answer']  # , 'theme']
 
 app.secret_key = urandom(24)
 
+
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
