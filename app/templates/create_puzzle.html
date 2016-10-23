@@ -1,27 +1,32 @@
 {% extends 'layout.html' %}
 {% block mainbody %}
-<div class="row">
-    <h1>Create Puzzle From List Of Hint/Answer Pairs</h1>
-    <div class="control-group" id="fields">
-        <!--<label class="control-label" for="field1">Nice Multiple Form Fields</label>-->
-        <div class="controls"> 
-            <form role="form" autocomplete="off" action="/create_puzzle" method="post">
-                <div class="entry input-group col-xs-3">
-                    <input class="form-control" name="hint_1" type="text" placeholder="Enter Hint" />
-                    <input class="form-control" name="answer_1" type="text" placeholder="Enter Answer" />
-                    <input type="submit" name="submit_hints" id="submit_hints" action=tabindex="4" class="form-control btn btn-primary" value="Create Puzzle!">
+<div class="container">
+    <div class="row">
+        <h1>Create Puzzle From List Of Hint/Answer Pairs</h1>
+        <div class="control-group" id="fields">
+            <!--<label class="control-label" for="field1">Nice Multiple Form Fields</label>-->
+            <div class="controls"> 
+                <form role="form" autocomplete="off" action="/create_puzzle" method="post">
+                    <div class="entry input-group col-xs-3">
+                        <input class="form-control" name="hint_1" type="text" placeholder="Enter Hint" />
+                        <input class="form-control" name="answer_1" type="text" placeholder="Enter Answer" />
+                        <input type="submit" name="submit_hints" id="submit_hints" action=tabindex="4" class="form-control btn btn-primary" value="Create Puzzle!">
 
 
-                    <span class="input-group-btn">
-                        <button class="btn btn-success btn-add" type="button">
-                            <span class="glyphicon glyphicon-plus"></span>
-                        </button>
-                    </span>
-                </div>
-            </form>
-        <br>
-        <small>Press <span class="glyphicon glyphicon-plus gs"></span> to add another Hint/Answer pair to include in the puzzle.</small>
+                        <span class="input-group-btn">
+                            <button class="btn btn-success btn-add" type="button">
+                                <span class="glyphicon glyphicon-plus"></span>
+                            </button>
+                        </span>
+                    </div>
+                </form>
+            <br>
+            <small>Press <span class="glyphicon glyphicon-plus gs"></span> to add another Hint/Answer pair to include in the puzzle.</small>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+{% block jsinclude %}
+    <script src="{{ url_for('static', filename='js/create_puzzle.js') }}"></script>
 {% endblock %}
