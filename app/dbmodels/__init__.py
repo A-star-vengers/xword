@@ -75,20 +75,24 @@ class PuzzleHintsMapTable(db.Model):
     __tablename__ = "puzzle_hint_map"
     __table_args__ = {'sqlite_autoincrement' : True}
 
-    #Contain the crossword id foreign key to use to map a crossword puzzle to a list of hints
+    # Contain the crossword id foreign key to use to map a crossword puzzle to a list of hints
     cid = db.Column(db.Integer, db.ForeignKey("crosswords.cid"), primary_key=True)
     haid = db.Column(db.Integer, db.ForeignKey("pairs.haid"), primary_key=True)
-    #Number of hint in puzzle, e.g. 1 in 1 Across
+    # Number of hint in puzzle, e.g. 1 in 1 Across
     hint_num = db.Column(db.Integer)
-    #Down vs Across
+    # Down vs Across
     axis = db.Column(db.String(6))
-    #Start cell for the first letter of the hint
+    # Start cell for the first letter of the hint
     cell_across = db.Column(db.Integer)
     cell_down = db.Column(db.Integer)
 
-    def __init__(self, cid, haid):
+    def __init__(self, cid, haid, hint_num, axis, cell_across, cell_down):
         self.cid = cid
         self.haid = haid
+        self.hint_num = hint_num
+        self.axis = axis
+        self.cell_across = cell_across
+        self.cell_down = cell_down
 
 class UserPuzzleTimes(db.Model):
     """Class to contain the relation between user, puzzle, and time

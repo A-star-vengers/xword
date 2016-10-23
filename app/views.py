@@ -1,8 +1,10 @@
 from flask import render_template, request, session, redirect, url_for
 from app import app
 from app.db import db
-from app.dbmodels import User, HintAnswerPair
+from app.dbmodels import User, HintAnswerPair, CrosswordPuzzle
+from app.dbmodels import UserCreatedPuzzles, PuzzleHintsMapTable
 from app.util import validate_table, getsalt, createhash
+from app.puzzle.crossword import Crossword
 from functools import wraps
 from os import urandom
 
@@ -160,6 +162,12 @@ def create_puzzle():
         answers = sorted(list(answers))
 
         # Should respond with error if hints, answers lengths do not mach
+        if len(hints) != len(answers):
+            message = "Error: Invalid Request Arguments."
+            return render_template(
+                                    'index.html',
+                                    message=message
+                                  )
 
         # If we decide on a minimum length for crossword puzzle questions
         # that should also be enforced here
@@ -170,6 +178,8 @@ def create_puzzle():
         # box when typing in hint/answers that will complete based off
         # of contents
         # in the database, that is a little much for first demo though
+        pairs = []
+        hint_ids = {}
         for hint, answer in zip(hints, answers):
 
             print("Hint: " + request.form[hint])
@@ -177,12 +187,33 @@ def create_puzzle():
             hint = request.form[hint]
             answer = request.form[answer]
 
+            if hint == '' or answer == '':
+                message = "Error: Invalid Request Arguments."
+                return render_template(
+                                        'index.html',
+                                        message=message
+                                      )
+
+            pair = (answer, hint)
+            pairs.append(pair)
+
             # Check if hint/answer pair already exists, do not report an error
             # just do not add to the database if this happens
+            """
             pair_exists = HintAnswerPair.query.filter(
                                             HintAnswerPair.hint == hint,
                                             HintAnswerPair.answer == answer
                                                         ).scalar()
+            """
+            try:
+                pair_exists = HintAnswerPair.query.filter(
+                                            HintAnswerPair.hint == hint,
+                                            HintAnswerPair.answer == answer
+                                            ).first()
+                hint_ids[pair] = pair_exists.haid
+            except Exception as e:
+                print(str(e))
+                pair_exists = None
 
             if pair_exists is None:
                 print("New Hint Answer Pair")
@@ -191,10 +222,78 @@ def create_puzzle():
                 new_pair = HintAnswerPair(answer, hint, session['uid'])
                 db.session.add(new_pair)
                 db.session.commit()
+                hint_ids[pair] = new_pair.haid
 
-        # If puzzle is created successfully should redirect to
-        # game page where puzzle game starts
+        word_list = list(map(lambda x: x[0], pairs))
+        print("Word list: " + str(word_list))
+        print("pairs: " + str(pairs))
+        new_puzzle = Crossword(50, 50, "-", 5000, pairs)
+        new_puzzle.compute_crossword(3)
+
+        word_descriptions = list(map(
+                                     lambda x: (str(x), x.row,
+                                                x.col, x.vertical
+                                                ),
+                                     new_puzzle.current_word_list
+                                      )
+                                 )
+
+        if len(word_list) != len(word_descriptions):
+            message = "Error: Could not place all words on the board."
+            return render_template(
+                                    'index.html',
+                                    message=message
+                                  )
+
+        # print( str(word_descriptions) )
+
+        # Create the crossword puzzle
+        puzzle = CrosswordPuzzle(len(pairs), 25, 25)
+        db.session.add(puzzle)
+        db.session.commit()
+
+        cid = puzzle.cid
+
+        # Create the user to crossword mapping
+        uc_entry = UserCreatedPuzzles(cid, session['uid'])
+        db.session.add(uc_entry)
+        db.session.commit()
+
+        # Create a hint answer pair map entry for each hint answer
+        # pair. These will describe how to layout the puzzle.
+        hint_num = 1
+        for pair in pairs:
+            answer, hint = pair
+
+            word_description = next(filter(
+                                            lambda x: x[0] == answer,
+                                            word_descriptions
+                                          )
+                                    )
+
+            if word_description[3]:
+                axis = "down"
+            else:
+                axis = "across"
+
+            hint_map = PuzzleHintsMapTable(
+                                            cid,
+                                            hint_ids[pair],
+                                            hint_num,
+                                            axis,
+                                            word_description[1],
+                                            word_description[2]
+                                          )
+
+            db.session.add(hint_map)
+            db.session.commit()
+
+            hint_num += 1
 
     # If some unexpected HTTP request type simply
     # redirect to root page
-    return redirect(url_for('index'))
+    message = "Puzzle submitted successfully!!!"
+    return render_template(
+                            'index.html',
+                            message=message
+                          )
