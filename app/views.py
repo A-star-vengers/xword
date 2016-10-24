@@ -7,6 +7,7 @@ from app.util import validate_table, getsalt, createhash
 from app.puzzle.crossword import Crossword
 from functools import wraps
 from os import urandom
+import random
 
 register_form = ['username', 'email', 'password', 'confirm']
 login_form = ['username', 'password']
@@ -299,6 +300,12 @@ def create_puzzle():
                           )
 
 
+def random_puzzle_id():
+    """Return the id of a random puzzle, or raise IndexError."""
+    all_ids = CrosswordPuzzle.query.with_entities(CrosswordPuzzle.cid).all()
+    return random.choice(all_ids)[0]
+
+
 @app.route("/play_puzzle", methods=['GET', 'POST'])
 def play_puzzle():
     if 'logged_in' not in session:
@@ -307,22 +314,35 @@ def play_puzzle():
     if request.method == 'POST':
         assert False, request.form
 
-    hints = [  # TODO: get the puzzle from the database
+    # If a puzzle has not been selected, choose one at random
+    try:
+        selected_id = request.args.get('puzzle_id', random_puzzle_id())
+    except IndexError:
+        return render_template('play_puzzle.html', message='No puzzles yet!')
+
+    raw_hints = (
+        HintAnswerPair.query
+        .join(PuzzleHintsMapTable)
+        .add_columns(
+            HintAnswerPair.hint,
+            HintAnswerPair.answer,
+            PuzzleHintsMapTable.axis,
+            PuzzleHintsMapTable.cell_across,
+            PuzzleHintsMapTable.cell_down,
+            PuzzleHintsMapTable.hint_num
+        ).filter_by(cid=selected_id)
+        .all()
+    )
+    if not raw_hints:
+        return render_template('play_puzzle.html', message='Puzzle not found!')
+    hints = [
         {
-            'direction': 'across',
-            'row': 0,
-            'col': 0,
-            'num': 1,
-            'answer': 'aaa',
-            'hint': 'a'
-        },
-        {
-            'direction': 'down',
-            'row': 0,
-            'col': 0,
-            'num': 2,
-            'answer': 'aaa',
-            'hint': 'b'
-        },
+            'hint': hint.hint,
+            'answer': hint.answer,
+            'direction': hint.axis,
+            'row': hint.cell_across - 1,
+            'col': hint.cell_down - 1,
+            'num': hint.hint_num,
+        } for hint in raw_hints
     ]
     return render_template('play_puzzle.html', hints=hints)

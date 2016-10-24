@@ -7,8 +7,13 @@
     <script src="{{ url_for('static', filename='js/puzzle.js') }}"></script>
 {% endblock %}
 {% block onload %}
-setupPuzzle('puzzleContainer')
+    {% if hints %}
+        setupPuzzle('puzzleContainer')
+    {% endif %}
 {% endblock %}
 {% block mainbody %}
+    {% if message %}
+        <p class="lead">{{ message }}<br></p>
+    {% endif %}
     <div id="puzzleContainer"></div>
 {% endblock %}
