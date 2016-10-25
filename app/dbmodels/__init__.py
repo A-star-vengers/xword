@@ -161,8 +161,10 @@ class CrosswordPuzzle(db.Model):
     num_cells_down = db.Column(db.Integer)
     #Number of cells horizontally in the puzzle
     num_cells_across = db.Column(db.Integer)
+    title = db.Column(db.String(32), unique=False)
 
-    def __init__(self, num_hints, num_cells_down, num_cells_across):
+    def __init__(self, num_hints, num_cells_down, num_cells_across, title):
         self.num_hints = num_hints
         self.num_cells_down = num_cells_down
         self.num_cells_across = num_cells_across
+        self.title = title

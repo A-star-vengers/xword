@@ -139,6 +139,25 @@ def submit_pair():
     return redirect(url_for('login'))
 
 
+@app.route("/browse_puzzles", methods=['GET', 'POST'])
+def browse_puzzles():
+    
+    page = ''
+    per_page = 8
+    total = 40
+    query = CrosswordPuzzle.query
+    paginated = query.paginate()
+    # http://flask-sqlalchemy.pocoo.org/2.1/api/#flask.ext.sqlalchemy.Pagination
+    # https://www.reddit.com/r/flask/comments/3nsfr3/afflasksqlalchemy_pagination/
+#    paginated = Table.query.filter(things==thing, this==that).paginate(page, 10)
+#    return render_template("mypage.html", paginated=paginated)
+    # flask.ext.sqlalchemy.Pagination(query, page, per_page, total, items)
+#    paginated = UserCreatedPuzzles.query.filter(things==thing, this==that).paginate(page, 10)
+
+    if request.method == 'GET':
+        return render_template('browse_puzzles.html', paginated=paginated)
+
+
 @app.route("/create_puzzle", methods=['GET', 'POST'])
 @login_required
 def create_puzzle():
@@ -161,7 +180,7 @@ def create_puzzle():
         hints = sorted(list(hints))
         answers = sorted(list(answers))
 
-        # Should respond with error if hints, answers lengths do not mach
+        # Should respond with error if hints, answers lengths do not match
         if len(hints) != len(answers):
             message = "Error: Invalid Request Arguments."
             return render_template(
@@ -248,7 +267,7 @@ def create_puzzle():
         # print( str(word_descriptions) )
 
         # Create the crossword puzzle
-        puzzle = CrosswordPuzzle(len(pairs), 25, 25)
+        puzzle = CrosswordPuzzle(len(pairs), 25, 25, 'temp')
         db.session.add(puzzle)
         db.session.commit()
 
