@@ -140,18 +140,17 @@ def submit_pair():
 
 @app.route("/browse_puzzles", methods=['GET', 'POST'])
 def browse_puzzles():
-    
-    page = ''
-    per_page = 8
+
+    #    page = ''
+    #    per_page = 8
     query = CrosswordPuzzle.query
     paginated = query.paginate()
     # http://flask-sqlalchemy.pocoo.org/2.1/api/#flask.ext.sqlalchemy.Pagination
     # https://www.reddit.com/r/flask/comments/3nsfr3/afflasksqlalchemy_pagination/
-#    paginated = Table.query.filter(things==thing, this==that).paginate(page, 10)
-#    return render_template("mypage.html", paginated=paginated)
+    # paginated = Table.query.filter(things==t, this==t).paginate(page, 10)
+    # return render_template("mypage.html", paginated=paginated)
     # flask.ext.sqlalchemy.Pagination(query, page, per_page, total, items)
-#    paginated = UserCreatedPuzzles.query.filter(things==thing, this==that).paginate(page, 10)
-# https://pythonguy.wordpress.com/category/sqlalchemy/
+    # https://pythonguy.wordpress.com/category/sqlalchemy/
     if request.method == 'GET':
         return render_template('browse_puzzles.html', paginated=paginated)
 
@@ -264,7 +263,7 @@ def create_puzzle():
         # print( str(word_descriptions) )
 
         # Create the crossword puzzle
-        puzzle = CrosswordPuzzle(len(pairs), 25, 25, title)
+        puzzle = CrosswordPuzzle(len(pairs), 25, 25, 'titleABCDEFG')
         db.session.add(puzzle)
         db.session.commit()
 
