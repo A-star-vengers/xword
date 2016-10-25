@@ -105,7 +105,6 @@ def submit_pair():
 
     if request.method == 'POST':
         if validate_table(submit_form, request.form):
-
             hint = request.form['hint']
             answer = request.form['answer']
 
@@ -144,7 +143,6 @@ def browse_puzzles():
     
     page = ''
     per_page = 8
-    total = 40
     query = CrosswordPuzzle.query
     paginated = query.paginate()
     # http://flask-sqlalchemy.pocoo.org/2.1/api/#flask.ext.sqlalchemy.Pagination
@@ -153,7 +151,7 @@ def browse_puzzles():
 #    return render_template("mypage.html", paginated=paginated)
     # flask.ext.sqlalchemy.Pagination(query, page, per_page, total, items)
 #    paginated = UserCreatedPuzzles.query.filter(things==thing, this==that).paginate(page, 10)
-
+# https://pythonguy.wordpress.com/category/sqlalchemy/
     if request.method == 'GET':
         return render_template('browse_puzzles.html', paginated=paginated)
 
@@ -172,6 +170,7 @@ def create_puzzle():
 
         post_params = request.form.to_dict()
 
+        print(post_params)
         hints = filter(lambda x: "hint_" in x, post_params)
         answers = filter(lambda x: "answer_" in x, post_params)
 
@@ -200,7 +199,6 @@ def create_puzzle():
         pairs = []
         hint_ids = {}
         for hint, answer in zip(hints, answers):
-
             print("Hint: " + request.form[hint])
             print("Answer: " + request.form[answer])
             hint = request.form[hint]
@@ -263,11 +261,10 @@ def create_puzzle():
                                     'index.html',
                                     message=message
                                   )
-
         # print( str(word_descriptions) )
 
         # Create the crossword puzzle
-        puzzle = CrosswordPuzzle(len(pairs), 25, 25, 'temp')
+        puzzle = CrosswordPuzzle(len(pairs), 25, 25, title)
         db.session.add(puzzle)
         db.session.commit()
 

@@ -3,14 +3,12 @@
 <div class="container">
     <div class="row">
 
-
         <h1>Create Puzzle From List Of Hint/Answer Pairs</h1>
         <h2>Enter Puzzle Title</h2>
-           <form role="form" autocomplete="off" action="/create_puzzle" method="post">
-              <div class="entry input-group col-xs-3">
-                 <input class="form-control" name="puzzle_title" type="text" placeholder="Enter Title" />
-              </div>
-           </form>
+        <div class="form-group">
+          <label for="name">Puzzle Title:</label>
+          <input type="text" class="form-control" id="title" name="title" placeholder="Puzzle Title">
+        </div>
  
         <h2>Enter Hints and Answers</h2>
         <div class="control-group" id="fields">

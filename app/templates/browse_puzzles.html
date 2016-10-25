@@ -11,9 +11,10 @@
                 <img src="http://placehold.it/320x150" alt="">
                 <div class="caption">
                     <h4 class="pull-right">$64.99</h4>
-                    <h4><a href="#">Second Product</a>
+                    <h4><a href="#"><li>{{ item.title }}</li></a>
 
-                    <li>{{ item }}</li>
+                    
+                    <li>({{ item.num_cells_down }} x {{ item.num_cells_across }}, {{ item.num_hints }} questions)</li>
                     </h4>
                     <p>This is a short description. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
                 </div>
@@ -35,13 +36,18 @@
 
 
 <!-- This is from the Flask-SqlAlchemy documentation -->
+
+   <div class="row">
+        <div class="col-lg-8 col-lg-offset-4">
+            <ul class="pagination pagination-lg">
 <div class=pagination>
 {%- for page in paginated.iter_pages() %}
 {% if page %}
     {% if page != paginated.page %}
     <a href="{{ url_for("myview", page=page) }}">{{ page }}</a>
     {% else %}
-    <strong>{{ page }}</strong>
+ <li><a href="#">   <strong>{{ page }}</strong></li>
+
     {% endif %}
 {% else %}
     <span class=ellipsis>…</span>
@@ -49,15 +55,6 @@
 {%- endfor %}
 </div>
 
-
-   <div class="row">
-        <div class="col-lg-8 col-lg-offset-4">
-            <ul class="pagination pagination-lg">
-              <li><a href="#">1</a></li>
-              <li><a href="#">2</a></li>
-              <li><a href="#">3</a></li>
-              <li><a href="#">4</a></li>
-              <li><a href="#">5</a></li>
             </ul>
         </div>
     </div>
