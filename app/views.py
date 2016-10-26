@@ -118,7 +118,6 @@ def submit_pair():
                                                         ).scalar()
 
             if pair_exists is None:
-
                 newPair = HintAnswerPair(
                                          answer, hint,
                                          session['uid']
@@ -165,36 +164,23 @@ def create_puzzle():
         return render_template('create_puzzle.html')
 
     if request.method == 'POST':
-
-        hints = []
-        answers = []
-
         post_params = request.form.to_dict()
 
-        if 'title' not in post_params:
+        title = post_params.get('title', None)
+
+        if title is None:
             message = "Error: Need to provide title for puzzle."
-            return render_template(
-                                    'index.html',
-                                    message=message
-                                  )
-
-        title = post_params['title']
-
-        hints = filter(lambda x: "hint_" in x, post_params)
-        answers = filter(lambda x: "answer_" in x, post_params)
+            return render_template('index.html', message=message)
 
         # Sort hints and answers to make sure listed in order
         # e.g. hint_1, hint_2, hint_3, rather that hint_2, hint_1, hint_3
-        hints = sorted(list(hints))
-        answers = sorted(list(answers))
+        hint_keys = sorted(filter(lambda x: "hint_" in x, post_params))
+        answer_keys = sorted(filter(lambda x: "answer_" in x, post_params))
 
         # Should respond with error if hints, answers lengths do not match
-        if len(hints) != len(answers):
+        if len(hint_keys) != len(answer_keys):
             message = "Error: Invalid Request Arguments."
-            return render_template(
-                                    'index.html',
-                                    message=message
-                                  )
+            return render_template('index.html', message=message)
 
         # If we decide on a minimum length for crossword puzzle questions
         # that should also be enforced here
@@ -207,41 +193,29 @@ def create_puzzle():
         # in the database, that is a little much for first demo though
         pairs = []
         hint_ids = {}
-        for hint, answer in zip(hints, answers):
-            print("Hint: " + request.form[hint])
-            print("Answer: " + request.form[answer])
-            hint = request.form[hint]
-            answer = request.form[answer]
+        for hint_key, answer_key in zip(hint_keys, answer_keys):
+            hint = request.form[hint_key]
+            answer = request.form[answer_key].upper()
+            print("Hint: ", hint)
+            print("Answer: ", answer)
 
             if hint == '' or answer == '':
                 message = "Error: Invalid Request Arguments."
-                return render_template(
-                                        'index.html',
-                                        message=message
-                                      )
+                return render_template('index.html', message=message)
 
-            pair = (answer, hint)
+            pair = (hint, answer)
             pairs.append(pair)
 
             # Check if hint/answer pair already exists, do not report an error
             # just do not add to the database if this happens
-            """
-            pair_exists = HintAnswerPair.query.filter(
-                                            HintAnswerPair.hint == hint,
-                                            HintAnswerPair.answer == answer
-                                                        ).scalar()
-            """
-            try:
-                pair_exists = HintAnswerPair.query.filter(
+            existing_pair = HintAnswerPair.query.filter(
                                             HintAnswerPair.hint == hint,
                                             HintAnswerPair.answer == answer
                                             ).first()
-                hint_ids[pair] = pair_exists.haid
-            except Exception as e:
-                print(str(e))
-                pair_exists = None
 
-            if pair_exists is None:
+            if existing_pair is not None:
+                hint_ids[pair] = existing_pair.haid
+            else:
                 print("New Hint Answer Pair")
 
                 # Add the hint/answer pair to the database
@@ -250,27 +224,21 @@ def create_puzzle():
                 db.session.commit()
                 hint_ids[pair] = new_pair.haid
 
-        word_list = list(map(lambda x: x[0], pairs))
-        print("Word list: " + str(word_list))
-        print("pairs: " + str(pairs))
+        word_list = [x[1] for x in pairs]
+        print("Word list: ", word_list)
+        print("Pairs: ", pairs)
         new_puzzle = Crossword(50, 50, "-", 5000, pairs)
         new_puzzle.compute_crossword(3)
+        new_puzzle.order_number_words()
 
-        word_descriptions = list(map(
-                                     lambda x: (str(x), x.row,
-                                                x.col, x.vertical
-                                                ),
-                                     new_puzzle.current_word_list
-                                      )
-                                 )
+        print("Crossword Current Word List", new_puzzle.current_word_list)
+        word_descriptions = {str(x).upper(): (x.row, x.col, x.down_across(), x.number)
+                             for x in new_puzzle.current_word_list}
+        print("Word descriptions", word_descriptions)
 
         if len(word_list) != len(word_descriptions):
             message = "Error: Could not place all words on the board."
-            return render_template(
-                                    'index.html',
-                                    message=message
-                                  )
-        # print( str(word_descriptions) )
+            return render_template('index.html', message=message)
 
         # Create the crossword puzzle
         puzzle = CrosswordPuzzle(len(pairs), 25, 25, title)
@@ -286,34 +254,22 @@ def create_puzzle():
 
         # Create a hint answer pair map entry for each hint answer
         # pair. These will describe how to layout the puzzle.
-        hint_num = 1
         for pair in pairs:
-            answer, hint = pair
+            hint, answer = pair
 
-            word_description = next(filter(
-                                            lambda x: x[0] == answer,
-                                            word_descriptions
-                                          )
-                                    )
-
-            if word_description[3]:
-                axis = "down"
-            else:
-                axis = "across"
+            row, col, axis, num = word_descriptions[answer]
 
             hint_map = PuzzleHintsMapTable(
                                             cid,
                                             hint_ids[pair],
-                                            hint_num,
+                                            num,
                                             axis,
-                                            word_description[1],
-                                            word_description[2]
+                                            row,
+                                            col
                                           )
 
             db.session.add(hint_map)
             db.session.commit()
-
-            hint_num += 1
 
     # If some unexpected HTTP request type simply
     # redirect to root page
