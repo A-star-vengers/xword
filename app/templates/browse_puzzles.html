@@ -1,0 +1,58 @@
+{% extends 'layout.html' %}
+{% block mainbody %}
+<div class="container">
+    <h1> Browse existing puzzles to play </h1>
+
+    <ul class="items">
+    {% for items in paginated.items|batch(4) %}
+
+        <div class="row">
+
+        {% for item in items %}
+           <div class="col-lg-3 col-md-3">     
+                <div class="thumbnail">
+                    <img src="http://placehold.it/320x150" alt="">
+                    <div class="caption">
+                        <!--<h4 class="pull-right">$64.99</h4>-->
+                        <h4><a href="/play_game?cid={{ item.cid }}">{{ item.title }}</a>
+                        </h4>
+                        <p>({{ item.num_cells_down }} x {{ item.num_cells_across }}, {{ item.num_hints }} questions)</p>
+                    </div>
+                    <!--
+                    <div class="ratings">
+                        <p class="pull-right">12 reviews</p>
+                        <p>
+                            <span class="glyphicon glyphicon-star"></span>
+                            <span class="glyphicon glyphicon-star"></span>
+                            <span class="glyphicon glyphicon-star"></span>
+                            <span class="glyphicon glyphicon-star"></span>
+                            <span class="glyphicon glyphicon-star-empty"></span>
+                        </p>
+                    </div>
+                    -->
+                </div>
+            </div>
+        {% endfor %}
+
+        </div>
+
+    {% endfor %}
+    </ul>
+    <div class="row">
+        <div class="col-lg-8 col-lg-offset-4">
+            <ul class="pagination pagination-lg">
+            {% if paginated.has_prev %}
+                <li><a href="{{ url_for('browse_puzzles', page=paginated.prev_num) }}">Prev</a></li>
+            {% endif %}
+            {% if paginated.has_next %}
+                <li><a href="{{ url_for('browse_puzzles', page=paginated.next_num) }}">Next</a></li>
+            {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block jsinclude %}
+{% endblock %}
+
+

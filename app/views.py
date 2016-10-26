@@ -106,7 +106,6 @@ def submit_pair():
 
     if request.method == 'POST':
         if validate_table(submit_form, request.form):
-
             hint = request.form['hint']
             answer = request.form['answer']
 
@@ -140,6 +139,24 @@ def submit_pair():
     return redirect(url_for('login'))
 
 
+@app.route("/browse_puzzles/", defaults={"page": 1})
+@app.route("/browse_puzzles/page/<int:page>",
+           methods=['GET', 'POST'])
+@login_required
+def browse_puzzles(page):
+
+    query = CrosswordPuzzle.query
+    paginated = query.paginate(page, 12)
+    # http://flask-sqlalchemy.pocoo.org/2.1/api/#flask.ext.sqlalchemy.Pagination
+    # https://www.reddit.com/r/flask/comments/3nsfr3/afflasksqlalchemy_pagination/
+    # paginated = Table.query.filter(things==t, this==t).paginate(page, 10)
+    # return render_template("mypage.html", paginated=paginated)
+    # flask.ext.sqlalchemy.Pagination(query, page, per_page, total, items)
+    # https://pythonguy.wordpress.com/category/sqlalchemy/
+    if request.method == 'GET':
+        return render_template('browse_puzzles.html', paginated=paginated)
+
+
 @app.route("/create_puzzle", methods=['GET', 'POST'])
 @login_required
 def create_puzzle():
@@ -154,6 +171,15 @@ def create_puzzle():
 
         post_params = request.form.to_dict()
 
+        if 'title' not in post_params:
+            message = "Error: Need to provide title for puzzle."
+            return render_template(
+                                    'index.html',
+                                    message=message
+                                  )
+
+        title = post_params['title']
+
         hints = filter(lambda x: "hint_" in x, post_params)
         answers = filter(lambda x: "answer_" in x, post_params)
 
@@ -162,7 +188,7 @@ def create_puzzle():
         hints = sorted(list(hints))
         answers = sorted(list(answers))
 
-        # Should respond with error if hints, answers lengths do not mach
+        # Should respond with error if hints, answers lengths do not match
         if len(hints) != len(answers):
             message = "Error: Invalid Request Arguments."
             return render_template(
@@ -182,7 +208,6 @@ def create_puzzle():
         pairs = []
         hint_ids = {}
         for hint, answer in zip(hints, answers):
-
             print("Hint: " + request.form[hint])
             print("Answer: " + request.form[answer])
             hint = request.form[hint]
@@ -245,11 +270,10 @@ def create_puzzle():
                                     'index.html',
                                     message=message
                                   )
-
         # print( str(word_descriptions) )
 
         # Create the crossword puzzle
-        puzzle = CrosswordPuzzle(len(pairs), 25, 25)
+        puzzle = CrosswordPuzzle(len(pairs), 25, 25, title)
         db.session.add(puzzle)
         db.session.commit()
 
