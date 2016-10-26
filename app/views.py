@@ -234,7 +234,8 @@ def create_puzzle():
         new_puzzle.order_number_words()
 
         print("Crossword Current Word List", new_puzzle.current_word_list)
-        word_descriptions = {str(x).upper(): (x.row, x.col, x.down_across(), x.number)
+        word_descriptions = {str(x).upper(): (x.row, x.col, x.down_across(),
+                                              x.number)
                              for x in new_puzzle.current_word_list}
         print("Word descriptions", word_descriptions)
 
