@@ -308,10 +308,8 @@ def random_puzzle_id():
 
 
 @app.route("/play_puzzle", methods=['GET', 'POST'])
+@login_required
 def play_puzzle():
-    if 'logged_in' not in session:
-        return redirect(url_for('login'))
-
     if request.method == 'POST':
         assert False, request.form
 
@@ -320,6 +318,8 @@ def play_puzzle():
         selected_id = request.args.get('puzzle_id', random_puzzle_id())
     except IndexError:
         return render_template('play_puzzle.html', message='No puzzles yet!')
+
+    puzzle = CrosswordPuzzle.query.get(selected_id)
 
     raw_hints = (
         HintAnswerPair.query
@@ -336,14 +336,19 @@ def play_puzzle():
     )
     if not raw_hints:
         return render_template('play_puzzle.html', message='Puzzle not found!')
-    hints = [
-        {
-            'hint': hint.hint,
-            'answer': hint.answer,
-            'direction': hint.axis,
-            'row': hint.cell_across - 1,
-            'col': hint.cell_down - 1,
-            'num': hint.hint_num,
-        } for hint in raw_hints
-    ]
-    return render_template('play_puzzle.html', hints=hints)
+
+    puzzleData = {
+        'nrows': puzzle.num_cells_down,
+        'ncols': puzzle.num_cells_across,
+        'hints': [
+            {
+                'hint': hint.hint,
+                'answer': hint.answer,
+                'direction': hint.axis,
+                'row': hint.cell_down - 1,
+                'col': hint.cell_across - 1,
+                'num': hint.hint_num,
+            } for hint in raw_hints
+        ]
+    }
+    return render_template('play_puzzle.html', puzzleData=puzzleData)

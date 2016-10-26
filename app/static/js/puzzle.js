@@ -1,209 +1,330 @@
-puzzleState = {
-	"nrows": 6,
-	"ncols": 7,
-	"hints": hints,
-	"hlRow": 0,
-	"hlCol": 0,
-	"hlDir": "across"
-};
+/*puzzleData = {
+    nrows: 6,
+    ncols: 7,
+    hints: [
+        {direction:"across", row:0, col:0, num:1,  answer:"LIBEL", hint:"Defamation in print"},
+        {direction:"across", row:1, col:0, num:6,  answer:"ITUNES", hint:"Apple application that stores music"},
+        {direction:"across", row:2, col:0, num:8,  answer:"SARANAC", hint:"Beer brewed in upstate New York"},
+        {direction:"across", row:3, col:0, num:10, answer:"ALIBABA", hint:"\"Open, sesame!\" speaker"},
+        {direction:"across", row:4, col:1, num:11, answer:"YELPER", hint:"One looking up restaurante reviews on their phone, say"},
+        {direction:"across", row:5, col:2, num:12, answer:"DEERE", hint:"John __ (tractor maker)"},
+        {direction:"down",   row:0, col:0, num:1,  answer:"LISA", hint:"Bart's sister on \"The Simpsons\""},
+        {direction:"down",   row:0, col:1, num:2,  answer:"ITALY", hint:"Country with a red, white and green flag"},
+        {direction:"down",   row:0, col:2, num:3,  answer:"BURIED", hint:"Hid, as in squirrel might an acorn"},
+        {direction:"down",   row:0, col:3, num:4,  answer:"ENABLE", hint:"Allow"},
+        {direction:"down",   row:0, col:4, num:5,  answer:"LENAPE", hint:"Delaware tribe"},
+        {direction:"down",   row:1, col:5, num:7,  answer:"SABER", hint:"__-toothed tiger"},
+        {direction:"down",   row:2, col:6, num:9,  answer:"CARE", hint:"Suffix with Obama"}
+    ]
+};*/
 
-function createEmptyGrid() {
-	s = puzzleState;
-	var grid = s["grid"] = new Array(s.nrows);
-	for(var i = 0; i < s.nrows; i++) {
-		grid[i] = new Array(s.ncols);
-		grid[i].fill("");
-	}
-}
+// Component for a single hint
+Vue.component('xwrd-hint', {
+    template: '<div>\
+                 {{ hint.solved ? "✓" : "" }}\
+                 {{ hint.hint }}\
+               </div>',
+    props: ['hint'],
+});
 
-function fillGrid() {
-	s = puzzleState
-	for(var i = 0; i < s.hints.length; i++) {
-		hint = s.hints[i];
-		r = hint.row
-		c = hint.col
+// Component for a group of hints ("across" or "down" group)
+Vue.component('xwrd-hints', {
+    template: '<div>\
+                 <h3>{{ direction | capitalize }}</h3>\
+                 <ol>\
+                   <template v-for="hint in dirHints">\
+                     <li :value="hint.num">\
+                       <xwrd-hint :hint="hint"></xwrd-hint>\
+                     </li>\
+                   </template>\
+                 </ol>\
+               </div>',
+    props: ['grid', 'hints', 'direction'],
+    computed: {
+        dirHints: function() {
+            return this.hints.filter(function(hint) {
+                return hint.direction == this.direction;
+            }.bind(this));
+        }
+    },
+    filters: {
+        capitalize: function(value) {
+            value = value.toString();
+            return value.charAt(0).toUpperCase() + value.slice(1);
+        }
+    }
+});
 
-		for(var j = 0; j < hint.answer.length; j++) {
-			if(r >= s.nrows || c >= s.ncols) {
-				console.error("grid not big enough", hint.answer);
-				return false;
-			}
+// Component for an individual puzzle cell
+Vue.component('xwrd-cell', {
+    template: '<div v-if="cell.black" class="black"></div>\
+               <div v-else v-on:click="onClick" class="grid-cell"\
+                 v-bind:class="{ active: isActive, \
+                                 highlighted: isHighlighted }">\
+                   {{ cell.guess }}\
+               </div>',
+    props: ['cell', 'hlRow', 'hlCol', 'hlDir'],
+    computed: {
+        isHighlighted: function() {
+            if(this.hlDir == "across") {
+                return this.cell.row == this.hlRow;
+            } else {
+                return this.cell.col == this.hlCol;
+            }
+        },
+        isActive: function() {
+            return (this.cell.row == this.hlRow)
+                   && (this.cell.col == this.hlCol);
+        }
+    },
+    methods: {
+        onClick: function(event) {
+            bus.$emit('cell-click', [this.cell.row, this.cell.col]);
+        }
+    }
+});
 
-			if(s.grid[r][c] != "" && s.grid[r][c] != hint.answer[j]) {
-				console.error("hint clash", hint.answer, s.grid[r][c], hint.answer[j]);
-				return false;
-			}
-			s.grid[r][c] = hint.answer[j];
+// Component for a grid of cells
+Vue.component('xwrd-grid', {
+    template: '<div><table>\
+                 <tr v-for="(row, r) in grid">\
+                   <td v-for="(cell, c) in grid[r]">\
+                     <xwrd-cell\
+                       :cell="grid[r][c]"\
+                       :hlRow="hlRow"\
+                       :hlCol="hlCol"\
+                       :hlDir="hlDir">\
+                     </xwrd-cell>\
+                   </td>\
+                 </tr>\
+                </table></div>',
+    props: ['nrows', 'ncols', 'hlRow', 'hlCol', 'hlDir', 'grid'],
+});
 
-			if(hint.direction == "across") {
-				c += 1;
-			} else {
-				r += 1;
-			}
-		}
-	}
-	return true;
-}
+// Component to display the current time
+Vue.component('xwrd-time', {
+    template: '<div><b>Time:</b> {{ minutes | pad }}:{{ seconds | pad }} </div>',
+    props: ['time'],
+    computed: {
+        minutes: function() {
+            return Math.floor(this.time/1000/60);
+        },
+        seconds: function() {
+            return Math.floor(this.time/1000 - this.minutes*60);
+        }
+    },
+    filters: {
+        pad: function(value) {
+            if(value < 10) {
+                return "0" + value.toString();
+            } else {
+                return value.toString();
+            }
+        }
+    }
+});
 
-function getLine(row, col, dir) {
-	var line = [];
-	var r    = (dir == "across") ? row : 0;
-	var c    = (dir == "down")   ? col : 0;
-	var rInc = (dir == "across") ? 0 : 1;
-	var cInc = (dir == "down")   ? 0 : 1;
-	var n    = (dir == "across") ? s.ncols : s.nrows;
+// Component to represent the whole puzzle
+Vue.component('xwrd-puzzle', {
+    template: '<div>\
+                <xwrd-grid\
+                  :nrows="nrows"\
+                  :ncols="ncols"\
+                  :grid="grid"\
+                  :hlRow="hlRow"\
+                  :hlCol="hlCol"\
+                  :hlDir="hlDir">\
+                </xwrd-grid>\
+                <xwrd-time :time="timeElapsed"></xwrd-time>\
+                <div><b>Done:</b> {{ done }}</div>\
+                <xwrd-hints direction="across"\
+                  :hints="hints"\
+                  :grid="grid">\
+                </xwrd-hints>\
+                <xwrd-hints direction="down"\
+                  :hints="hints"\
+                  :grid="grid">\
+                </xwrd-hints>\
+               </div>',
+    data: function() {
+        var hints = [];
+        for (hint of this.hintsList) {
+            hints.push({
+                direction: hint.direction,
+                row: hint.row,
+                col: hint.col,
+                num: hint.num,
+                answer: hint.answer,
+                hint: hint.hint,
+                solved: false,
+            });
+        }
 
-	for(var i = 0; i < n; i++) {
-		cell = getCell(r, c);
-		if(!cell.classList.contains('black')) {
-			line.push(cell);
-		}
-		r += rInc;
-		c += cInc;
-	}
-	return line;
-}
+        var grid = new Array(this.nrows);
+        for(var r = 0; r < this.nrows; r++) {
+            grid[r] = new Array(this.ncols);
+            for(var c = 0; c < this.ncols; c++) {
+                grid[r][c] = {
+                    black: true,
+                    num: 0,
+                    row: r,
+                    col: c,
+                    guess: "",
+                    answer: ""
+                }
+            }
+        }
 
-function setHighlight(newRow, newCol, newDir) {
-	s = puzzleState;
-	if(newRow < 0 || newRow >= s.nrows) {
-		newRow = s.hlRow;
-	}
+        for(let hint of hints) {
+            r = hint.row;
+            c = hint.col;
 
-	if(newCol < 0 || newCol >= s.ncols) {
-		newCol = s.hlCol;
-	}
+            grid[r][c].num = hint.num;
 
-	if(typeof newDir === 'undefined') {
-		newDir = s.hlDir;
-	}
+            for(let letter of hint.answer) {
+                if(r >= this.nrows || c >= this.ncols) {
+                    console.error("grid not big enough", hint.answer);
+                }
 
-	if(s.grid[newRow][newCol] == "") {
-		newRow = s.hlRow;
-		newCol = s.hlCol;
-	}
+                if(grid[r][c].answer != "" && grid[r][c].answer != letter) {
+                    console.error("hint clash", hint.answer, grid[r][c], letter);
+                }
 
-	var oldLine = getLine(s.hlRow, s.hlCol, s.hlDir);
-	for(var i = 0; i < oldLine.length; i++) {
-		oldLine[i].classList.remove("active", "highlighted");
-	}
+                grid[r][c].answer = letter;
+                grid[r][c].black = false;
 
-	s.hlRow = newRow;
-	s.hlCol = newCol;
-	s.hlDir = newDir;
+                if(hint.direction == "across") {
+                    c += 1;
+                } else {
+                    r += 1;
+                }
+            }
+        }
 
-	var newLine = getLine(s.hlRow, s.hlCol, s.hlDir);
-	for(var i = 0; i < newLine.length; i++) {
-		newLine[i].classList.add("highlighted");
-	}
-	getCell(s.hlRow, s.hlCol).classList.add("active");
-}
+        return {
+            hlDir: "across",
+            hlCol: 0,
+            hlRow: 0,
+            grid: grid,
+            hints: hints,
+            done: false,
+            startTime: Date.now(),
+            timeElapsed: 0,
+            totalTime: 0,
+        }
+    },
+    props: ['nrows', 'ncols', 'hintsList'],
+    created: function() {
+        bus.$on('key-press', function(event) {
+            this.onKeyPress(event);
+        }.bind(this));
 
-function cellClicked(r, c) {
-	dir = s.hlDir;
-	if(s.hlRow == r && s.hlCol == c) {
-		dir = s.hlDir == "across" ? "down" : "across";
-	}
-	setHighlight(r, c, dir);
-}
+        bus.$on('cell-click', function(event) {
+            this.onCellClick(event[0], event[1]);
+        }.bind(this));
 
-function getCell(row, col) {
-	cellId = 'puzzleCell-'+row+'-'+col;
-	return document.getElementById(cellId);
-}
+        setInterval(function() {
+            this.timeElapsed = Date.now() - this.startTime;
+        }.bind(this), 1000);
+    },
+    methods: {
+        onKeyPress: function(event) {
+            if(event.key == "Backspace") {
+                this.doBackspace();
+            } else if((event.charCode >= 65 && event.charCode <= 90)
+                || (event.charCode >= 97 && event.charCode <= 122)) {
+                this.setLetter(event.key.toUpperCase());
+            }
+        },
+        onCellClick: function(row, col) {
+            var dir = this.hlDir;
 
-function setLetter(letter) {
-	cell = getCell(s.hlRow, s.hlCol);
-	cell.innerHTML = letter
-	if(s.hlDir == "across") {
-		setHighlight(s.hlRow, s.hlCol+1);
-	} else {
-		setHighlight(s.hlRow+1, s.hlCol);
-	}
-}
+            if(this.hlRow == row && this.hlCol == col) {
+                dir = (this.hlDir == "across") ? "down" : "across";
+            }
 
-function backspace() {
-	console.log('backspace');
-	if(hlDir == "across") {
-		setHighlight(hlRow, hlCol-1);
-	} else {
-		setHighlight(hlRow-1, hlCol);
-	}
-}
+            this.setHighlight(row, col, dir);
+        },
+        setHighlight: function(newRow, newCol, newDir) {
+            if(newRow < 0 || newRow >= this.nrows) {
+                newRow = this.hlRow;
+            }
 
-function setupKeypress() {
-	body = document.getElementsByTagName('body')[0];
-	body.addEventListener('keypress', function(event) {
-		if(event.key == "Backspace") {
-			backspace();
-		} else if((event.charCode >= 65 && event.charCode <= 90)
-			|| (event.charCode >= 97 && event.charCode <= 122)) {
-			setLetter(event.key.toUpperCase());
-		}
-	});
-}
+            if(newCol < 0 || newCol >= this.ncols) {
+                newCol = this.hlCol;
+            }
 
-function renderPuzzle() {
-	table = document.createElement('table');
-	table.style.height = (500*s.nrows/s.ncols)+"px";
+            if(typeof newDir === 'undefined') {
+                newDir = this.hlDir;
+            }
 
-	for(var r = 0; r < s.nrows; r++) {
-		tr = document.createElement('tr');
-		for(var c = 0; c < s.ncols; c++) {
-			td = document.createElement('td');
-			td.id = 'puzzleCell-'+r+'-'+c;
-			td.style.height = (100/s.nrows)+"%";
-			td.style.width = (100/s.ncols)+"%";
-			td.innerHTML = "";
-			if(s.grid[r][c] == "") {
-				td.classList.add('black');
-			} else {
-				td.addEventListener('click', function(r, c) {
-					return function() { cellClicked(r,c); };
-				}(r,c));
-			}
-			tr.appendChild(td);
-		}
-		table.appendChild(tr);
-	}
-	return table;
-}
+            if(this.grid[newRow][newCol].black) {
+                newRow = this.hlRow;
+                newCol = this.hlCol;
+            }
 
-function renderHints(dir) {
-	s = puzzleState;
-	dirHints = puzzleState.hints.filter(function(hint) {
-		return hint.direction == dir;
-	});
+            this.hlRow = newRow;
+            this.hlCol = newCol;
+            this.hlDir = newDir;
+        },
+        setAndMove: function(letter, amount) {
+            this.grid[this.hlRow][this.hlCol].guess = letter.toUpperCase();
+            if(this.hlDir == "across") {
+                this.setHighlight(this.hlRow, this.hlCol+amount);
+            } else {
+                this.setHighlight(this.hlRow+amount, this.hlCol);
+            }
+            this.checkHints();
+        },
+        setLetter: function(letter) {
+            this.setAndMove(letter, 1);
+        },
+        doBackspace: function() {
+            this.setAndMove("", -1);
+        },
+        checkHints: function() {
+            var numSolved = 0;
+            for(let hint of this.hints) {
+                var solved = true;
+                var r = hint.row;
+                var c = hint.col;
+                for(let letter of hint.answer) {
+                    if(letter != this.grid[r][c].guess) {
+                        solved = false;
+                        break;
+                    }
+                    if(hint.direction == "across") {
+                        c += 1;
+                    } else {
+                        r += 1;
+                    }
+                }
+                hint.solved = solved;
+                numSolved += Number(solved);
+            }
+            if(numSolved == this.hints.length) {
+                this.done = true;
+                this.totalTime = this.timeElapsed;
+                window.alert('Puzzle finished in '+Math.floor(this.totalTime/1000)+' seconds!');
+            }
+        }
+    }
+});
 
-	container = document.createElement('div');
+// Event Bus
+var bus = new Vue();
 
-	header = document.createElement('h2');
-	header.innerHTML = dir.toUpperCase();
+// Crossword Instance
+var xwrd = new Vue({
+    el: '#xwrd',
+    data: {
+        nrows: puzzleData.nrows,
+        ncols: puzzleData.ncols,
+        hints: puzzleData.hints,
+    }
+});
 
-	ol = document.createElement('ol');
-	for(var i = 0; i < dirHints.length; i++) {
-		li = document.createElement('li');
-		li.value = dirHints[i].num;
-		li.innerHTML = dirHints[i].hint;
-		ol.appendChild(li);
-	}
-
-	container.appendChild(header);
-	container.appendChild(ol);
-
-	return container;
-}
-
-function setupPuzzle(target) {
-	s = puzzleState;
-	createEmptyGrid();
-	fillGrid();
-
-	container = document.getElementById(target);
-	container.appendChild(renderPuzzle());
-	container.appendChild(renderHints("across"));
-	container.appendChild(renderHints("down"))
-
-	setupKeypress();
-	setHighlight(0,0);
-}
+// Setup global event listener for key presses
+document.addEventListener('keypress', function(event) {
+    bus.$emit('key-press', event);
+});

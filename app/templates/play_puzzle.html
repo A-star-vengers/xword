@@ -1,19 +1,20 @@
 {% extends 'layout.html' %}
 {% block head_extras %}
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Walter+Turncoat">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/puzzle.css') }}">
     <script>
-        hints = {{ hints|safe }};
+        puzzleData = {{ puzzleData|tojson|safe }};
     </script>
-    <script src="{{ url_for('static', filename='js/puzzle.js') }}"></script>
-{% endblock %}
-{% block onload %}
-    {% if hints %}
-        setupPuzzle('puzzleContainer')
-    {% endif %}
+    <script src="{{ url_for('static', filename='js/vue.js') }}"></script>
 {% endblock %}
 {% block mainbody %}
     {% if message %}
         <p class="lead">{{ message }}<br></p>
     {% endif %}
-    <div id="puzzleContainer"></div>
+    <div id="xwrd">
+        <xwrd-puzzle :nrows="nrows" :ncols="ncols" :hints-list="hints"></xwrd-puzzle>
+    </div>
+{% endblock %}
+{% block afterbody %}
+    <script src="{{ url_for('static', filename='js/puzzle.js') }}"></script>
 {% endblock %}

@@ -18,7 +18,7 @@
     {% block head_extras %}
     {% endblock %}
   </head>
-  <body onload="{% block onload %}{% endblock %}">
+  <body>
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
         <div class="navbar-header">
@@ -77,4 +77,6 @@
     <script src="{{ url_for('static', filename='js/create_puzzle.js') }}"></script>
     -->
   </body>
+  {% block afterbody %}
+  {% endblock %}
 </html>
