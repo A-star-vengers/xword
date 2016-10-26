@@ -340,9 +340,8 @@ def play_puzzle():
     try:
         selected_id = request.args.get('puzzle_id', random_puzzle_id())
     except IndexError:
-        return render_template('play_puzzle.html', message='No puzzles yet!')
-
-    puzzle = CrosswordPuzzle.query.get(selected_id)
+        return render_template(
+            'play_puzzle.html', message='No puzzles yet!', puzzleData={})
 
     raw_hints = (
         HintAnswerPair.query
@@ -358,7 +357,10 @@ def play_puzzle():
         .all()
     )
     if not raw_hints:
-        return render_template('play_puzzle.html', message='Puzzle not found!')
+        return render_template(
+            'play_puzzle.html', message='Puzzle not found!', puzzleData={})
+
+    puzzle = CrosswordPuzzle.query.get(selected_id)
 
     puzzleData = {
         'nrows': puzzle.num_cells_down,
