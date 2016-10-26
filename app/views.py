@@ -229,7 +229,7 @@ def create_puzzle():
         word_list = [x[0] for x in pairs]
         print("Word list: ", word_list)
         print("Pairs: ", pairs)
-        new_puzzle = Crossword(50, 50, "-", 5000, pairs)
+        new_puzzle = Crossword(25, 25, "-", 5000, pairs)
         new_puzzle.compute_crossword(3)
         new_puzzle.order_number_words()
 
