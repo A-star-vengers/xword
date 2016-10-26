@@ -138,13 +138,14 @@ def submit_pair():
     return redirect(url_for('login'))
 
 
-@app.route("/browse_puzzles", methods=['GET', 'POST'])
-def browse_puzzles():
+@app.route("/browse_puzzles/", defaults={"page": 1})
+@app.route("/browse_puzzles/page/<int:page>",
+           methods=['GET', 'POST'])
+@login_required
+def browse_puzzles(page):
 
-    #    page = ''
-    #    per_page = 8
     query = CrosswordPuzzle.query
-    paginated = query.paginate()
+    paginated = query.paginate(page, 12)
     # http://flask-sqlalchemy.pocoo.org/2.1/api/#flask.ext.sqlalchemy.Pagination
     # https://www.reddit.com/r/flask/comments/3nsfr3/afflasksqlalchemy_pagination/
     # paginated = Table.query.filter(things==t, this==t).paginate(page, 10)
@@ -169,7 +170,15 @@ def create_puzzle():
 
         post_params = request.form.to_dict()
 
-        print(post_params)
+        if 'title' not in post_params:
+            message = "Error: Need to provide title for puzzle."
+            return render_template(
+                                    'index.html',
+                                    message=message
+                                  )
+
+        title = post_params['title']
+
         hints = filter(lambda x: "hint_" in x, post_params)
         answers = filter(lambda x: "answer_" in x, post_params)
 
@@ -263,7 +272,7 @@ def create_puzzle():
         # print( str(word_descriptions) )
 
         # Create the crossword puzzle
-        puzzle = CrosswordPuzzle(len(pairs), 25, 25, 'titleABCDEFG')
+        puzzle = CrosswordPuzzle(len(pairs), 25, 25, title)
         db.session.add(puzzle)
         db.session.commit()
 
