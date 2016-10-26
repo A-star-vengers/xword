@@ -10,7 +10,7 @@ def getsalt():
 
 def createhash(salt, password):
     'Apply SHA256 on salt + password and return 128 byte string.'
-    thehash = SHA256.new(salt + password.encode())
+    thehash = SHA256.new(salt.encode() + password.encode())
     return thehash.hexdigest()
 
 
