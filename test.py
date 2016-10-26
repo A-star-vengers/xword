@@ -119,6 +119,7 @@ class CreatePuzzleTest(AppTest):
         assert 'Login successful' in response.data.decode()
 
         response = self.client.post('/create_puzzle', data=dict(
+                title="Geography Questions",
                 hint_1="The movement of people from one place to another ",
                 answer_1="migration",
                 hint_2="The number of deaths each year per 1,000 people ",
