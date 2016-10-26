@@ -61,7 +61,8 @@ Vue.component('xwrd-cell', {
                <div v-else v-on:click="onClick" class="grid-cell"\
                  v-bind:class="{ active: isActive, \
                                  highlighted: isHighlighted }">\
-                   {{ cell.guess }}\
+                   <div class="hint-num"> {{ cell.num ? cell.num : ""}}</div>\
+                   <div class="hint-guess"> {{ cell.guess }}</div>\
                </div>',
     props: ['cell', 'hlRow', 'hlCol', 'hlDir'],
     computed: {
