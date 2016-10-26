@@ -319,6 +319,7 @@ def play_puzzle():
     puzzle = CrosswordPuzzle.query.get(selected_id)
 
     puzzleData = {
+        'title': puzzle.title,
         'nrows': puzzle.num_cells_down,
         'ncols': puzzle.num_cells_across,
         'hints': [

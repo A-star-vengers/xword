@@ -12,7 +12,11 @@
         <p class="lead">{{ message }}<br></p>
     {% endif %}
     <div id="xwrd">
-        <xwrd-puzzle :nrows="nrows" :ncols="ncols" :hints-list="hints"></xwrd-puzzle>
+        <xwrd-puzzle :title="title"
+                     :nrows="nrows"
+                     :ncols="ncols"
+                     :hints-list="hints">
+        </xwrd-puzzle>
     </div>
 {% endblock %}
 {% block afterbody %}
