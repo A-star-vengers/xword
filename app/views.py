@@ -330,7 +330,6 @@ def random_puzzle_id():
     return random.choice(all_ids)[0]
 
 
-
 @app.route("/play_puzzle", methods=['GET', 'POST'])
 @login_required
 def play_puzzle():
@@ -369,8 +368,8 @@ def play_puzzle():
                 'hint': hint.hint,
                 'answer': hint.answer,
                 'direction': hint.axis,
-                'row': hint.cell_down - 1,
-                'col': hint.cell_across - 1,
+                'row': hint.cell_across - 1,
+                'col': hint.cell_down - 1,
                 'num': hint.hint_num,
             } for hint in raw_hints
         ]
