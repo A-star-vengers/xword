@@ -252,7 +252,7 @@ def create_puzzle():
         word_list = list(map(lambda x: x[0], pairs))
         print("Word list: " + str(word_list))
         print("pairs: " + str(pairs))
-        new_puzzle = Crossword(50, 50, "-", 5000, pairs)
+        new_puzzle = Crossword(25, 25, "-", 5000, pairs)
         new_puzzle.compute_crossword(3)
 
         word_descriptions = list(map(
