@@ -203,7 +203,8 @@ def create_puzzle():
                 message = "Error: Invalid Request Arguments."
                 return render_template('index.html', message=message)
 
-            pair = (hint, answer)
+            # pair = (hint, answer)
+            pair = (answer, hint)
             pairs.append(pair)
 
             # Check if hint/answer pair already exists, do not report an error
@@ -224,7 +225,8 @@ def create_puzzle():
                 db.session.commit()
                 hint_ids[pair] = new_pair.haid
 
-        word_list = [x[1] for x in pairs]
+        # word_list = [x[1] for x in pairs]
+        word_list = [x[0] for x in pairs]
         print("Word list: ", word_list)
         print("Pairs: ", pairs)
         new_puzzle = Crossword(50, 50, "-", 5000, pairs)
@@ -255,7 +257,8 @@ def create_puzzle():
         # Create a hint answer pair map entry for each hint answer
         # pair. These will describe how to layout the puzzle.
         for pair in pairs:
-            hint, answer = pair
+            # hint, answer = pair
+            answer, hint = pair
 
             row, col, axis, num = word_descriptions[answer]
 
