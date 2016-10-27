@@ -1,0 +1,63 @@
+table {
+	/*width: 500px;*/
+	max-width: 100%;
+	border: 3px solid black;
+	margin: 0 auto;
+	border-spacing: 0;
+	border-collapse: collapse;
+
+	-webkit-touch-callout: none; /* iOS Safari */
+	-webkit-user-select: none;   /* Chrome/Safari/Opera */
+	-khtml-user-select: none;    /* Konqueror */
+	-moz-user-select: none;      /* Firefox */
+	-ms-user-select: none;       /* Internet Explorer/Edge */
+	user-select: none;           /* Non-prefixed version, currently
+                                  not supported by any browser */
+}
+
+td {
+	border: 1px solid dimgray;
+	text-align: center;
+    padding: 0;
+    /*height: 100%;*/
+}
+
+.hint-num {
+    font-size:10pt;
+    vertical-align: top;
+    width: 25%;
+    height: 25%;
+    position:absolute;
+}
+
+.hint-guess {
+	font-size: 52.5556px;
+	line-height: 52.5556px;
+    font-family: 'Walter Turncoat', cursive;
+}
+
+.grid-cell {
+    width: 50px;
+    height: 50px;
+    position: relative;
+    /*height: 100%;
+    width: 100%;*/
+}
+
+.black {
+	background-color: black;
+	width: 50px;
+	height: 50px;
+}
+
+.black::before {
+    content: "\200B";
+}
+
+.highlighted {
+	background-color: #a7d8ff;
+}
+
+.active {
+	background-color: #fdda00;
+}

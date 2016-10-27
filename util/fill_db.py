@@ -10,9 +10,9 @@ def main():
                  }
               )
 
-        print r.text
+        print(r.text)
 
-        for x in xrange(20, 100):
+        for x in range(20, 100):
 
             r = s.post("http://127.0.0.1:5000/create_puzzle", data={
                     "title" : "The best puzzle " + str(x),

@@ -91,6 +91,9 @@ ENV/
 # Rope project settings
 .ropeproject
 
+# Pycharm project settings
+.idea
+
 *.swp
 a-star-vengers_arc2205_km3227_homework2-blx.bib
 a-star-vengers_arc2205_km3227_homework2.aux
