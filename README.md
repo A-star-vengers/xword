@@ -1,11 +1,10 @@
 # xword
 
-cs4156 course project
-
-
 xword is a social crossword web application that will challenge players to solve puzzles of different 
 difficulties and show them how they fare against other players. 
 
+##
+cs4156 course project
 
 team a-star-vengers: 
   * arc2205@columbia.edu
@@ -33,8 +32,11 @@ comprise a canonical run:
   * pip install -r requirements.txt
   * python3 run.py
   * (open http://127.0.0.1:5000/, or whatever address is shown in the terminal into your favourite web browser)
+  
 ##
 The layout follows what seems to be the convention for flask: 
+  * run.py -- the entry point to the app
+  * tests.py -- test cases
   * util -- contains utilities around demoing the app
   * app/views.py -- is the main entry point for the front end logic
   * app/util.py -- contains some utilities used across 'views.py'
@@ -43,6 +45,3 @@ The layout follows what seems to be the convention for flask:
   * app/app.cfg -- contains the configuration for the app
   * app/dbmodels/__init__.py -- initialises the databases
   * app/puzzle/crossword.py -- the engine for generating the crossword puzzle (a cleaned up version of http://bryanhelmig.com/python-crossword-puzzle-generator/)
-  
-  
-  
