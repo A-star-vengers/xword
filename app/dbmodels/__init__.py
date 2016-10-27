@@ -112,7 +112,7 @@ class UserPuzzleTimes(db.Model):
 
     cid = db.Column(db.Integer, db.ForeignKey("crosswords.cid"), primary_key=True)
     uid = db.Column(db.Integer, db.ForeignKey("user.uid"), primary_key=True)
-    time = db.Column(db.DateTime, unique=False)
+    time = db.Column(db.Integer, unique=False)
 
     def __init__(self, cid, uid, time):
         self.cid = cid

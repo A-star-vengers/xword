@@ -5,6 +5,7 @@ from app.db import db
 from app.dbmodels import User, HintAnswerPair, CrosswordPuzzle
 from app.dbmodels import UserCreatedPuzzles, PuzzleHintsMapTable
 from app.dbmodels import Theme, HintAnswerThemeMap
+from app.dbmodels import UserPuzzleRatings, UserPuzzleTimes
 from app.util import validate_table, getsalt, createhash
 from app.puzzle.crossword import Crossword
 from functools import wraps
@@ -681,7 +682,30 @@ def random_puzzle_id():
 @login_required
 def play_puzzle():
     if request.method == 'POST':
-        assert False, request.form
+        puzzle_id = session.get("puzzle_id", None)
+        rating = request.form.get("rating", None)
+        time = request.form.get("time", None)
+
+        if not all((puzzle_id, rating, time)):
+            return render_template(
+                'play_puzzle.html', message='An error occured!', puzzleData={})
+
+        del session['puzzle_id']
+        user_id = session['uid']
+
+        time_exists = UserPuzzleTimes.query.filter(
+            UserPuzzleTimes.cid == puzzle_id,
+            UserPuzzleTimes.uid == user_id
+        ).scalar()
+
+        if time_exists is None:
+            db.session.add(UserPuzzleTimes(puzzle_id, user_id, time))
+        db.session.merge(UserPuzzleRatings(puzzle_id, session['uid'], rating))
+        db.session.commit()
+
+        return render_template(
+            'play_puzzle.html', message='Time and rating submited!',
+            puzzleData={})
 
     # If a puzzle has not been selected, choose one at random
     try:
@@ -763,4 +787,5 @@ def play_puzzle():
             } for hint in raw_hints
         ]
     }
+    session['puzzle_id'] = selected_id
     return render_template('play_puzzle.html', puzzleData=puzzleData)

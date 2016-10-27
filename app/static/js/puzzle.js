@@ -18,6 +18,29 @@
     ]
 };*/
 
+// Component for the end game overlay
+Vue.component('xwrd-overlay', {
+    template: '<div class="overlay" v-bind:class="{\'overlay-active\': done}">\
+                <div class="overlay-content">\
+                  <form action="/play_puzzle" method="post">\
+                    <input name="time" type="hidden" :value="totalTime" readonly><br>\
+                    <h2>You finished the puzzle in {{totalTime}} seconds!</h2><br>\
+                    <span>Rating:</span>\
+                    <select name="rating">\
+                      <option value="1">1</option>\
+                      <option value="2">2</option>\
+                      <option value="3">3</option>\
+                      <option value="4">4</option>\
+                      <option value="5" selected>5</option>\
+                    </select>\
+                    <span>stars</span><br>\
+                    <input type="submit" value="Submit">\
+                  </form>\
+                </div>\
+               </div>',
+    props: ['totalTime', 'done']
+});
+
 // Component for a single hint
 Vue.component('xwrd-hint', {
     template: '<div>\
@@ -128,6 +151,10 @@ Vue.component('xwrd-time', {
 // Component to represent the whole puzzle
 Vue.component('xwrd-puzzle', {
     template: '<div>\
+                <xwrd-overlay\
+                  :totalTime="totalTime"\
+                  :done="done">\
+                </xwrd-overlay>\
                 <center><h1> {{ title }}</h1></center>\
                 <center><h4> Created by {{ creator }}</h4></center>\
                 <center><h4> With answers authored by {{ authors }}</h4></center>\
@@ -308,8 +335,7 @@ Vue.component('xwrd-puzzle', {
             }
             if(numSolved == this.hints.length) {
                 this.done = true;
-                this.totalTime = this.timeElapsed;
-                window.alert('Puzzle finished in '+Math.floor(this.totalTime/1000)+' seconds!');
+                this.totalTime = Math.floor(this.timeElapsed/1000);
             }
         }
     }
