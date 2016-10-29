@@ -29,7 +29,7 @@ comprise a canonical run:
 
   * git clone https://github.com/A-star-vengers/xword.git
   * cd xword
-  * virtualenv venv
+  * virtualenv -p python3 venv
   * source venv/bin/activate
   * pip install -r requirements.txt
   * python3 run.py
