@@ -158,6 +158,3 @@ class CreatePuzzleTest(AppTest):
 
         assert 'Puzzle submitted successfully' in response.data.decode()
 
-
-if __name__ == '__main__':
-    unittest.main()
