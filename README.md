@@ -1,4 +1,6 @@
 # xword
+[![Build Status](https://travis-ci.org/A-star-vengers/xword.svg?branch=master)](https://travis-ci.org/A-star-vengers/xword)
+
 
 xword is a social crossword web application that will challenge players to solve puzzles of different 
 difficulties and show them how they fare against other players. 
