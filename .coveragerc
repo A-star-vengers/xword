@@ -1,12 +1,6 @@
 [run]
 omit = 
-    *lib*werkzeug* # hopefully works locally and on travis ci
-    *lib*jinja2*
-    *lib*Crypto*
-    *lib*sqlalchemy*
-    *lib*flask*
-    *lib*click*
-    *lib*ctypes*
+    *lib/python*
 
 [report]
 # Regexes for lines to exclude from consideration
@@ -22,6 +16,7 @@ exclude_lines =
     if 0:
     if __name__ == .__main__.:
     if __name__==.__main__.:
+    def __init__
 
 
 

@@ -106,7 +106,6 @@ class UserPuzzleTimes(db.Model):
     time = db.Column(db.DateTime, unique=False)
 
     def __init__(self, cid, uid, time):
-
         self.cid = cid
         self.uid = uid
         self.time = time
@@ -125,7 +124,6 @@ class UserPuzzleRatings(db.Model):
     rating = db.Column(db.Integer, unique=False)
 
     def __init__(self, cid, uid, rating):
-
         self.cid = cid
         self.uid = uid
         self.rating = rating

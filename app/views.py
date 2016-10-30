@@ -20,7 +20,7 @@ def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if 'logged_in' not in session:
-            return redirect(url_for('login'))
+            return redirect(url_for('login')) # seemingly cannot happen?
         return f(*args, **kwargs)
     return decorated
 
@@ -41,7 +41,7 @@ def login():
             try:
                 user_exists = User.query.filter_by(uname=username).first()
             except:
-                user_exists = None
+                user_exists = None # Need to exercise this line
 
             if user_exists:
                 if createhash(user_exists.salt, password) ==\
@@ -70,7 +70,7 @@ def logout():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-
+# TODO: Add template logic for trying to register an existing user
     if request.method == 'POST':
         if validate_table(register_form, request.form):
 
@@ -143,7 +143,6 @@ def submit_pair():
            methods=['GET', 'POST'])
 @login_required
 def browse_puzzles(page):
-
     query = CrosswordPuzzle.query
     paginated = query.paginate(page, 12)
     # http://flask-sqlalchemy.pocoo.org/2.1/api/#flask.ext.sqlalchemy.Pagination
