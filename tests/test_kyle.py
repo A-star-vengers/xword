@@ -1,0 +1,151 @@
+from app import app
+from app.util import validate_table
+from app.db import db, init_db
+
+from flask import render_template
+
+import unittest
+
+class FlaskTestCase(unittest.TestCase):
+
+    def setUp(self):
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///test.db"
+        db.drop_all()
+        init_db()
+
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+
+
+    # Ensure that Flask was set up correctly
+    def test_index(self):
+        tester = app.test_client(self)
+        response = tester.get('/login', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+
+    def test_slash(self):
+        tester = app.test_client(self)
+        response = tester.get('/')
+        self.assertIn(b'Xword: A Social Crossword Application', response.data)
+
+
+    # Ensure that the login page loads correctly
+    def test_login_page_loads(self):
+        tester = app.test_client(self)
+        response = tester.get('/login')
+        self.assertIn(b'Login', response.data)
+
+    def test_logout(self): 
+        tester = app.test_client(self)
+        response = tester.post('/register', data=dict(
+                        username='test1',
+                        email='test@gmail.com',
+                        password='test1',
+                        confirm='test1'
+        ), follow_redirects=True)
+
+        assert 'Registration successful' in response.data.decode()
+
+        response = tester.post('/login', data=dict(
+                        username='test1',
+                        password='test1'
+        ), follow_redirects=True)
+
+        assert 'Login successful' in response.data.decode()
+
+        response = tester.get('/logout', follow_redirects=True)
+
+        self.assertIn(b'Xword: A Social Crossword Application', response.data)
+        # above should really be something like 'assert render_template('index.html') == response.data'
+
+
+    def test_validate_table(self):
+        import flask
+        app = flask.Flask(__name__)
+
+        with app.test_request_context('/login'):
+            assert flask.request.path == '/login'
+            assert not validate_table(['a', 'b'], flask.request.form)
+
+
+    def test_validate_submit_get(self):
+        tester = app.test_client(self)
+        response = tester.post('/register', data=dict(
+                        username='test1',
+                        email='test@gmail.com',
+                        password='test1',
+                        confirm='test1'
+        ), follow_redirects=True)
+
+        assert 'Registration successful' in response.data.decode()
+
+        response = tester.post('/login', data=dict(
+                        username='test1',
+                        password='test1'
+        ), follow_redirects=True)
+
+        assert 'Login successful' in response.data.decode()
+
+
+        response = tester.get('/submit_pair', follow_redirects=True)
+        self.assertIn(b'Submit Hint/Answer Pair', response.data)
+
+    def test_hint_answer_already_exists(self):
+        tester = app.test_client(self)
+        response = tester.post('/register', data=dict(
+                        username='test1',
+                        email='test@gmail.com',
+                        password='test1',
+                        confirm='test1'
+        ), follow_redirects=True)
+
+        assert 'Registration successful' in response.data.decode()
+
+        response = tester.post('/login', data=dict(
+                        username='test1',
+                        password='test1'
+        ), follow_redirects=True)
+
+        assert 'Login successful' in response.data.decode()
+
+        response = tester.post('/submit_pair', data=dict(
+                hint="a",
+                answer="a"), follow_redirects=True)
+
+        self.assertIn(b'Submission successful', response.data)
+
+        response = tester.post('/submit_pair', data=dict(
+                hint="a",
+                answer="a"), follow_redirects=True)
+
+
+        self.assertIn(b'Error: Hint/Answer pair already exists.', response.data)
+
+    def test_hint_answer_already_exists(self):
+        tester = app.test_client(self)
+
+        response = tester.post('/register', data=dict(
+                        username='test1',
+                        email='test@gmail.com',
+                        password='test1',
+                        confirm='test1'
+        ), follow_redirects=True)
+
+        assert 'Registration successful' in response.data.decode()
+
+        response = tester.post('/login', data=dict(
+                        username='test1',
+                        password='test1'
+        ), follow_redirects=True)
+
+        assert 'Login successful' in response.data.decode()
+        response = tester.get('/browse_puzzles/page/1', follow_redirects=True)
+
+        self.assertIn(b'Browse existing puzzles to play', response.data)
+
+
+if __name__ == '__main__':
+    unittest.main()
+
+
