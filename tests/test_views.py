@@ -23,6 +23,26 @@ class AppTest(TestCase):
         db.drop_all()
 
 
+class LoggedInAppTest(AppTest):
+
+    def setUp(self):
+
+        super(LoggedInAppTest, self).setUp()
+
+        response = self.client.post('/register', data=dict(
+                        username='test',
+                        email='test@gmail.com',
+                        password='test',
+                        confirm='test'
+        ), follow_redirects=True)
+
+        response = self.client.post('/login', data=dict(
+                        username='test',
+                        password='test'
+        ), follow_redirects=True)
+
+
+
 class LoginTest(AppTest):
 
     def test_login(self):
@@ -70,25 +90,9 @@ class RegisterAndLoginTest(AppTest):
         assert 'Login successful' in response.data.decode()
 
 
-class SubmitHintAnswerPairTest(AppTest):
+class SubmitHintAnswerPairTest(LoggedInAppTest):
 
     def test_submit_pair(self):
-
-        response = self.client.post('/register', data=dict(
-                        username='test',
-                        email='test@gmail.com',
-                        password='test',
-                        confirm='test'
-        ), follow_redirects=True)
-
-        assert 'Registration successful' in response.data.decode()
-
-        response = self.client.post('/login', data=dict(
-                        username='test',
-                        password='test'
-        ), follow_redirects=True)
-
-        assert 'Login successful' in response.data.decode()
 
         response = self.client.post('/submit_pair', data=dict(
                         hint="You took these in school.",
@@ -98,25 +102,9 @@ class SubmitHintAnswerPairTest(AppTest):
         assert 'Submission successful' in response.data.decode()
 
 
-class CreatePuzzleTest(AppTest):
+class CreatePuzzleTest(LoggedInAppTest):
 
     def test_create_puzzle(self):
-
-        response = self.client.post('/register', data=dict(
-                        username='test',
-                        email='test@gmail.com',
-                        password='test',
-                        confirm='test'
-        ), follow_redirects=True)
-
-        assert 'Registration successful' in response.data.decode()
-
-        response = self.client.post('/login', data=dict(
-                        username='test',
-                        password='test'
-        ), follow_redirects=True)
-
-        assert 'Login successful' in response.data.decode()
 
         response = self.client.post('/create_puzzle', data=dict(
                 title="Geography Questions",
