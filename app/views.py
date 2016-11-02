@@ -16,11 +16,18 @@ submit_form = ['hint', 'answer']  # , 'theme']
 app.secret_key = urandom(24)
 
 
+@app.after_request
+def after_request(response):
+    response.headers.add('Cache-Control', 'no-store, no-cache, ' +
+                         'must-revalidate post-check=0, pre-check=0')
+    return response
+
+
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if 'logged_in' not in session:
-            return redirect(url_for('login')) # seemingly cannot happen?
+            return redirect(url_for('login'))  # seemingly cannot happen?
         return f(*args, **kwargs)
     return decorated
 
@@ -41,7 +48,7 @@ def login():
             try:
                 user_exists = User.query.filter_by(uname=username).first()
             except:
-                user_exists = None # Need to exercise this line
+                user_exists = None  # Need to exercise this line
 
             if user_exists:
                 if createhash(user_exists.salt, password) ==\
@@ -70,7 +77,7 @@ def logout():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-# TODO: Add template logic for trying to register an existing user
+    # TODO: Add template logic for trying to register an existing user
     if request.method == 'POST':
         if validate_table(register_form, request.form):
 
