@@ -20,6 +20,7 @@
                   </div>
                   -->
                   <div class="form-group">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <input type="submit" name="pair-submit" id="pair-submit" tabindex="4" class="form-control btn btn-primary" value="Submit Hint Answer Pair">
                   </div>
             </form>

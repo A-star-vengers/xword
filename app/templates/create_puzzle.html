@@ -20,6 +20,7 @@
                     <div class="entry input-group col-xs-3">
                         <input class="form-control" name="hint_1" type="text" placeholder="Enter Hint" />
                         <input class="form-control" name="answer_1" type="text" placeholder="Enter Answer" />
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                         <input type="submit" name="submit_hints" id="submit_hints" action=tabindex="4" class="form-control btn btn-primary" value="Create Puzzle!">
 
 

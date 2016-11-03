@@ -1,4 +1,5 @@
 from flask import render_template, request, session, redirect, url_for
+from flask_wtf.csrf import CsrfProtect
 from app import app
 from app.db import db
 from app.dbmodels import User, HintAnswerPair, CrosswordPuzzle
@@ -14,6 +15,8 @@ login_form = ['username', 'password']
 submit_form = ['hint', 'answer']  # , 'theme']
 
 app.secret_key = urandom(24)
+
+CsrfProtect(app)
 
 
 @app.after_request
