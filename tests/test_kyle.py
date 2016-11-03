@@ -4,12 +4,31 @@ from app.db import db, init_db
 
 from flask import render_template
 
+import flask_wtf
+
+from functools import wraps
+
 import unittest
+
+
+real_validate = flask_wtf.csrf.validate_csrf
+
+
+def check_csrf(test_method):
+    """Decorate a test method in order to check the CSRF token."""
+    @wraps(test_method)
+    def wrapper(self, *args, **kwargs):
+        flask_wtf.csrf.validate_csrf = real_validate
+        return test_method(self, *args, **kwargs)
+    return wrapper
+
 
 class FlaskTestCase(unittest.TestCase):
 
     def setUp(self):
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///test.db"
+        # For most tests we don't care about the CSRF token.
+        flask_wtf.csrf.validate_csrf = lambda token: True
         db.drop_all()
         init_db()
 
@@ -45,6 +64,7 @@ class FlaskTestCase(unittest.TestCase):
                         confirm='test1'
         ), follow_redirects=True)
 
+        self.assertEqual(response.status_code, 200, response.data.decode())
         assert 'Registration successful' in response.data.decode()
 
         response = tester.post('/login', data=dict(
@@ -122,7 +142,7 @@ class FlaskTestCase(unittest.TestCase):
 
         self.assertIn(b'Error: Hint/Answer pair already exists.', response.data)
 
-    def test_hint_answer_already_exists(self):
+    def test_browse_puzzles(self):
         tester = app.test_client(self)
 
         response = tester.post('/register', data=dict(
@@ -143,6 +163,25 @@ class FlaskTestCase(unittest.TestCase):
         response = tester.get('/browse_puzzles/page/1', follow_redirects=True)
 
         self.assertIn(b'Browse existing puzzles to play', response.data)
+
+    @check_csrf
+    def test_csrf_token_missing(self):
+        tester = app.test_client(self)
+
+        response = tester.post('/register', data=dict(
+                        username='test1',
+                        email='test@gmail.com',
+                        password='test1',
+                        confirm='test1'
+        ), follow_redirects=True)
+
+        response = tester.post('/login', data=dict(
+                        username='test1',
+                        password='test1'
+        ), follow_redirects=True)
+
+        self.assertEqual(response.status_code, 400, msg=response.data.decode())
+        self.assertIn('CSRF token missing', response.data.decode())
 
 
 if __name__ == '__main__':
