@@ -155,6 +155,9 @@ def submit_pair():
             hint = request.form['hint']
             answer = request.form['answer']
 
+            if not answer.isalpha():
+                return render_template('index.html', message="Invalid answer")
+
             # Check if hint/answer pair already exists
             # in the database
 

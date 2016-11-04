@@ -216,6 +216,48 @@ class SubmitHintAnswerPairTest(LoggedInAppTest):
 
         assert 'Submission successful' in response.data.decode()
 
+        response = self.client.post('/submit_pair', data=dict(
+            hint="Conan ___, TBS late night show host",
+            answer="o'brien"
+        ), follow_redirects=True)
+
+        assert 'Invalid answer' in response.data.decode()
+
+        response = self.client.post('/submit_pair', data=dict(
+            hint="Empty answer",
+            answer=""
+        ), follow_redirects=True)
+
+        assert 'Invalid answer' in response.data.decode()
+
+        response = self.client.post('/submit_pair', data=dict(
+            hint="The answer to life, the universe and everything",
+            answer="42"
+        ), follow_redirects=True)
+
+        assert 'Invalid answer' in response.data.decode()
+
+        response = self.client.post('/submit_pair', data=dict(
+            hint="The answer to life, the universe and everything",
+            answer="Forty-Two"
+        ), follow_redirects=True)
+
+        assert 'Invalid answer' in response.data.decode()
+
+        response = self.client.post('/submit_pair', data=dict(
+            hint="The Gettysburg Address",
+            answer="Four score and seven years ago our fathers brought forth, on this continent"
+        ), follow_redirects=True)
+
+        assert 'Invalid answer' in response.data.decode()
+
+        response = self.client.post('/submit_pair', data=dict(
+            hint="A very long answer",
+            answer="ThisIsAVeryLongAnswerThatMostCertainlyShouldBeRejectedByTheApplication"
+        ), follow_redirects=True)
+
+        assert 'Invalid answer' in response.data.decode()
+
 
 class CreatePuzzleTest(LoggedInAppTest):
 
