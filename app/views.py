@@ -66,6 +66,9 @@ def login():
             username = request.form['username']
             password = request.form['password']
 
+            if username == "" or password == "":
+                return redirect(url_for('login'))
+
             try:
                 user_exists = User.query.filter_by(uname=username).first()
             except:
@@ -107,19 +110,34 @@ def register():
             password = request.form['password']
             confirm = request.form['confirm']
 
+            if username == "" or email == "" or \
+               password == "" or confirm == "":
+                return redirect(url_for('login'))
+
             if password != confirm:
                 # Add template logic for invalid registration.
                 return redirect(url_for('login'))
 
-            salt = getsalt()
-            passhash = createhash(salt, password)
-            newUser = User(username, email, salt, passhash)
-            db.session.add(newUser)
-            db.session.commit()
-            return render_template(
-                                    'index.html',
-                                    message='Registration successful'
-                                  )
+            user_exists = User.query.filter(
+                                  User.uname == username
+                                            ).scalar()
+
+            if user_exists is None:
+                salt = getsalt()
+                passhash = createhash(salt, password)
+                newUser = User(username, email, salt, passhash)
+                db.session.add(newUser)
+                db.session.commit()
+                return render_template(
+                                        'index.html',
+                                        message='Registration successful'
+                                      )
+            else:
+                message = 'Error account already exists'
+                return render_template(
+                                        'index.html',
+                                        message=message
+                                      )
         else:
             return redirect(url_for('login'))
     else:
@@ -217,7 +235,7 @@ def create_puzzle():
 
         title = post_params.get('title', None)
 
-        if title is None:
+        if title is None or title == "":
             message = "Error: Need to provide title for puzzle."
             return render_template('index.html', message=message)
 
@@ -227,7 +245,7 @@ def create_puzzle():
         answer_keys = sorted(filter(lambda x: "answer_" in x, post_params))
 
         # Should respond with error if hints, answers lengths do not match
-        if len(hint_keys) != len(answer_keys):
+        if len(hint_keys) != len(answer_keys) or len(hint_keys) == 0:
             message = "Error: Invalid Request Arguments."
             return render_template('index.html', message=message)
 

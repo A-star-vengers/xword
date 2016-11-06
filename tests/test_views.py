@@ -6,6 +6,8 @@ from app import app
 from app.db import db, init_db
 from app.dbmodels import CrosswordPuzzle
 
+import flask_wtf
+
 
 class AppTest(TestCase):
 
@@ -16,6 +18,7 @@ class AppTest(TestCase):
 
     def setUp(self):
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///test.db"
+        flask_wtf.csrf.validate_csrf = lambda token: True
         db.drop_all()
         init_db()
 
@@ -26,6 +29,7 @@ class AppTest(TestCase):
 
 class LoggedInAppTest(AppTest):
 
+
     def setUp(self):
 
         super(LoggedInAppTest, self).setUp()
@@ -34,14 +38,13 @@ class LoggedInAppTest(AppTest):
                         username='test',
                         email='test@gmail.com',
                         password='test',
-                        confirm='test'
+                        confirm='test',
         ), follow_redirects=True)
 
         response = self.client.post('/login', data=dict(
                         username='test',
                         password='test'
         ), follow_redirects=True)
-
 
 
 class LoginTest(AppTest):
@@ -54,6 +57,42 @@ class LoginTest(AppTest):
         ), follow_redirects=True)
 
         assert 'Login successful' not in response.data.decode()
+
+    def test_empty_login(self):
+
+        response = self.client.post('/login', data=dict(
+                        username='',
+                        password='test2'
+        ), follow_redirects=True)
+
+        text = b'<form id="login-form" action="/login"'
+
+        self.assertIn(text, response.data)
+
+        response = self.client.post('/login', data=dict(
+                        username='test',
+                        password=''
+        ), follow_redirects=True)
+
+        self.assertIn(text, response.data)
+
+        response = self.client.post('/login', data=dict(
+                        username='',
+                        password=''
+        ), follow_redirects=True)
+
+        self.assertIn(text, response.data)
+
+    def test_invalid_login(self):
+
+        response = self.client.post('/login', data=dict(
+                        username='test',
+                        password='test3'
+                    ), follow_redirects=True)
+
+        text = b'<form id="login-form" action="/login"'
+
+        self.assertIn(text, response.data)
 
 
 class RegisterTest(AppTest):
@@ -68,6 +107,81 @@ class RegisterTest(AppTest):
         ), follow_redirects=True)
 
         assert 'Registration successful' in response.data.decode()
+
+    def test_empty_register(self):
+
+        response = self.client.post('/register', data=dict(
+                        username='test',
+                        email='test@gmail.com',
+                        password='test',
+                        confirm=''
+                    ), follow_redirects=True)
+
+        text = b'<form id="login-form" action="/login"'
+
+        self.assertIn(text, response.data)
+
+        response = self.client.post('/register', data=dict(
+                        username='test',
+                        email='test@gmail.com',
+                        password='',
+                        confirm='test'
+                    ), follow_redirects=True)
+
+        self.assertIn(text, response.data)
+
+        response = self.client.post('/register', data=dict(
+                        username='test',
+                        email='',
+                        password='test',
+                        confirm='test'
+                    ), follow_redirects=True)
+
+        self.assertIn(text, response.data)
+
+        response = self.client.post('/register', data=dict(
+                        username='',
+                        email='test@gmail.com',
+                        password='test',
+                        confirm='test'
+                    ), follow_redirects=True)
+
+        self.assertIn(text, response.data)
+
+    def test_invalid_confirm(self):
+
+        response = self.client.post('/register', data=dict(
+                        username='test',
+                        email='test@gmail.com',
+                        password='test',
+                        confirm='testing'
+                    ), follow_redirects=True)
+
+        text = b'<form id="login-form" action="/login"'
+
+        self.assertIn(text, response.data)
+
+    def test_already_registered(self):
+
+        response = self.client.post('/register', data=dict(
+                        username='test',
+                        email='test@gmail.com',
+                        password='test',
+                        confirm='test'
+        ), follow_redirects=True)
+
+        assert 'Registration successful' in response.data.decode()
+
+        text = b'Error account already exists'
+
+        response = self.client.post('/register', data=dict(
+                        username='test',
+                        email='test@gmail.com',
+                        password='test',
+                        confirm='test'
+        ), follow_redirects=True)
+
+        self.assertIn(text, response.data)
 
 
 class RegisterAndLoginTest(AppTest):
@@ -142,11 +256,72 @@ class CreatePuzzleTest(LoggedInAppTest):
                 answer_13="constitution",
                 hint_14="a system in which people make, exchange, and use " +
                         "things that have value",
-                answer_14="economy",
+                answer_14="economy"
                     ), follow_redirects=True)
+
+        # print( str(response.data.decode()) )
 
         assert 'Puzzle submitted successfully' in response.data.decode()
 
+    def test_mismatch_create_puzzle(self):
+
+        response = self.client.post('/create_puzzle', data=dict(
+                    title = "Geography Questions",
+                    hint_1="The movement of people from one place to another",
+                    hint_2="The number of deaths each year per 1,000 people",
+                    answer_2="deathrate",
+                    hint_3="Owners and workers who make products ",
+                    answer_3="producers",
+                    hint_4="A government in which the king is limited by law ",
+                    answer_4="constitutionalmonarchy"
+                    ), follow_redirects=True)
+
+        self.assertIn(b'Error: Invalid Request Arguments', response.data) 
+
+    def test_notitle_create_puzzle(self):
+
+        response = self.client.post('/create_puzzle', data=dict(
+                    hint_1="The movement of people from one place to another",
+                    answer_1="migration",
+                    hint_2="The number of deaths each year per 1,000 people",
+                    answer_2="deathrate"
+                    ), follow_redirects=True)
+
+        self.assertIn(b'Error: Need to provide title for puzzle', response.data)
+
+    def test_emptytitle_create_puzzle(self):
+
+        response = self.client.post('/create_puzzle', data=dict(
+                    title="",
+                    hint_1="The movement of people from one place to another",
+                    answer_1="migration",
+                    hint_2="The number of deaths each year per 1,000 people",
+                    answer_2="deathrate"
+                    ), follow_redirects=True)
+
+        self.assertIn(b'Error: Need to provide title for puzzle', response.data)
+
+    def test_empty_hint_answer_puzzle(self):
+
+        response = self.client.post('/create_puzzle', data=dict(
+                    title="Geography Questions",
+                    hint_1="",
+                    answer_1=""
+                    ), follow_redirects=True)
+
+        self.assertIn(b"must not be shorter than 2 letters", response.data)
+
+    def test_answer_not_alpha(self):
+
+        response = self.client.post('/create_puzzle', data=dict(
+                    title="Geography Questions",
+                    hint_1="The movement of people from one place to another",
+                    answer_1="\xDE\xAD\xBE\xEF"
+                    ), follow_redirects=True)
+
+        message = b"must only contain the letters A to Z"
+
+        self.assertIn(message, response.data)
 
 class PlayPuzzleTest(LoggedInAppTest):
 
@@ -187,7 +362,7 @@ class PlayPuzzleTest(LoggedInAppTest):
                 answer_13="constitution",
                 hint_14="a system in which people make, exchange, and use " +
                         "things that have value",
-                answer_14="economy",
+                answer_14="economy"
                     ), follow_redirects=True)
 
 
