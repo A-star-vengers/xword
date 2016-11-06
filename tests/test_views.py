@@ -244,7 +244,6 @@ class JapaneseTest(LoggedInAppTest):
                         answer="的場"
         ), follow_redirects=True)
 
-#        print(response.data.decode())
-#        assert "must only contain letters" in response.data.decode() 
+        assert "only contain the letters A to Z" in response.data.decode() 
 
 

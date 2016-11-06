@@ -18,9 +18,15 @@ app.secret_key = urandom(24)
 max_xw_size = 25
 max_hint_len = 25
 min_hint_len = 2
+
 message_too_long = "Error: Answer '{0}' must not be longer than {1} letters"
 message_too_short = "Error: Answer '{0}' must not be shorter than {1} letters"
-message_nonalpha = "Error: Answer '{0}' must only contain ascii letters."
+message_nonalpha = "Error: Answer '{0}' must only contain the letters A to Z."
+
+
+def is_valid_answer(x):
+    return all(ord(char) < 128 for char in x) and x.isalpha()
+
 
 CsrfProtect(app)
 
@@ -138,7 +144,7 @@ def submit_pair():
                                             HintAnswerPair.hint == hint,
                                             HintAnswerPair.answer == answer
                                                         ).scalar()
-            if not answer.isalpha():
+            if not is_valid_answer(answer):
                 app.logger.warning(answer + " is not alphabetical")
                 message = message_nonalpha.format(answer)
                 app.logger.error(message)
@@ -254,7 +260,8 @@ def create_puzzle():
                                         'index.html',
                                         message=message
                                       )
-            if not answer.isalpha():
+
+            if not is_valid_answer(answer):
                 message = message_nonalpha.format(answer)
                 app.logger.error(message)
                 return render_template(
