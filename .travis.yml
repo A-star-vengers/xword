@@ -5,7 +5,6 @@ python:
 install: pip install -r requirements.txt
 before_script:
   - flake8 --exclude app/dbmodels --exclude fill_db.py app
-  - flake8 test.py
   - flake8 run.py
 script: 
   - python3 -m nose --with-coverage
