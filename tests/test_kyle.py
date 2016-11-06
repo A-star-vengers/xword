@@ -1,3 +1,4 @@
+# coding: utf-8
 from app import app
 from app.util import validate_table
 from app.db import db, init_db
@@ -130,14 +131,14 @@ class FlaskTestCase(unittest.TestCase):
         assert 'Login successful' in response.data.decode()
 
         response = tester.post('/submit_pair', data=dict(
-                hint="a",
-                answer="a"), follow_redirects=True)
+                hint='aaa',
+                answer='aaa'), follow_redirects=True)
 
         self.assertIn(b'Submission successful', response.data)
 
         response = tester.post('/submit_pair', data=dict(
-                hint="a",
-                answer="a"), follow_redirects=True)
+                hint='aaa',
+                answer='aaa'), follow_redirects=True)
 
 
         self.assertIn(b'Error: Hint/Answer pair already exists.', response.data)
@@ -186,5 +187,4 @@ class FlaskTestCase(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
 

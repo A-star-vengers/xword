@@ -16,8 +16,12 @@ submit_form = ['hint', 'answer']  # , 'theme']
 
 app.secret_key = urandom(24)
 max_xw_size = 25
+max_hint_len = 25
+min_hint_len = 2
 message_too_long = "Error: Answer '{0}' must not be longer than {1} letters"
-message_nonalpha = "Error: Answer '{0}' must only contain letters."
+message_too_short = "Error: Answer '{0}' must not be shorter than {1} letters"
+message_nonalpha = "Error: Answer '{0}' must only contain ascii letters."
+
 CsrfProtect(app)
 
 
@@ -39,6 +43,7 @@ def login_required(f):
 
 @app.route('/')
 def index():
+    app.logger.info('reached /')
     return render_template('index.html', session=session)
 
 
@@ -134,19 +139,27 @@ def submit_pair():
                                             HintAnswerPair.answer == answer
                                                         ).scalar()
             if not answer.isalpha():
+                app.logger.warning(answer + " is not alphabetical")
                 message = message_nonalpha.format(answer)
+                app.logger.error(message)
                 return render_template(
                                         'index.html',
                                         message=message
                                       )
-
-            if len(answer) > max_xw_size:
-                message = message_too_long.format(answer,  max_xw_size)
+            if len(answer) < min_hint_len:
+                message = message_too_short.format(answer, min_hint_len)
+                app.logger.error(message)
                 return render_template(
                                         'index.html',
                                         message=message
                                       )
-
+            if len(answer) > max_hint_len:
+                message = message_too_long.format(answer,  max_hint_len)
+                app.logger.error(message)
+                return render_template(
+                                        'index.html',
+                                        message=message
+                                      )
             if pair_exists is None:
                 newPair = HintAnswerPair(
                                          answer, hint,
@@ -160,6 +173,7 @@ def submit_pair():
                                       )
             else:
                 message = "Error: Hint/Answer pair already exists."
+                app.logger.error(message)
                 return render_template(
                                         'index.html',
                                         message=message
@@ -226,21 +240,30 @@ def create_puzzle():
             hint = request.form[hint_key]
             answer = request.form[answer_key].upper()
 
-            if len(answer) > max_xw_size:
-                message = message_too_long.format(answer, max_xw_size)
+            if len(answer) < min_hint_len:
+                message = message_too_short.format(answer, min_hint_len)
+                app.logger.error(message)
+                return render_template(
+                                        'index.html',
+                                        message=message
+                                      )
+            if len(answer) > max_hint_len:
+                message = message_too_long.format(answer, max_hint_len)
+                app.logger.error(message)
                 return render_template(
                                         'index.html',
                                         message=message
                                       )
             if not answer.isalpha():
                 message = message_nonalpha.format(answer)
+                app.logger.error(message)
                 return render_template(
                                         'index.html',
                                         message=message
                                       )
 
-            print("Hint: ", hint)
-            print("Answer: ", answer)
+            app.logger.info("Hint: " + hint)
+            app.logger.info("Answer: " + answer)
 
             if hint == '' or answer == '':
                 message = "Error: Invalid Request Arguments."
@@ -259,7 +282,8 @@ def create_puzzle():
             if existing_pair is not None:
                 hint_ids[pair] = existing_pair.haid
             else:
-                print("New Hint Answer Pair")
+
+                app.logger.info("New Hint Answer Pair")
 
                 # Add the hint/answer pair to the database
                 new_pair = HintAnswerPair(answer, hint, session['uid'])
@@ -283,6 +307,7 @@ def create_puzzle():
 
         if len(word_list) != len(word_descriptions):
             message = "Error: Could not place all words on the board."
+            app.logger.error(message)
             return render_template('index.html', message=message)
 
         # Create the crossword puzzle

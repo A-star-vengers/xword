@@ -150,7 +150,7 @@ class CreatePuzzleTest(LoggedInAppTest):
 
 class PlayPuzzleTest(LoggedInAppTest):
 
-    def create_puzzle(self):
+    def create_good_puzzle(self):
 
         response = self.client.post('/create_puzzle', data=dict(
                 title="Geography Questions",
@@ -199,8 +199,7 @@ class PlayPuzzleTest(LoggedInAppTest):
 
     def test_with_puzzle(self):
 
-        self.create_puzzle()
-
+        self.create_good_puzzle()
         response = self.client.get('/play_puzzle', follow_redirects=True)
 
         assert "puzzleData" in response.data.decode()
@@ -234,3 +233,18 @@ class BrowsePuzzleTest(LoggedInAppTest):
         response = self.client.get('/browse_puzzles/page/2', follow_redirects=True)
 
         assert "Next" in response.data.decode() and "Prev" in response.data.decode()
+
+
+class JapaneseTest(LoggedInAppTest):
+
+    def test_submit_pair(self):
+
+        response = self.client.post('/submit_pair', data=dict(
+                        hint="Japanese hint",
+                        answer="的場"
+        ), follow_redirects=True)
+
+#        print(response.data.decode())
+#        assert "must only contain letters" in response.data.decode() 
+
+
