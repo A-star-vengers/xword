@@ -35,15 +35,16 @@
             <li class="active"><a href="/">Home</a></li>
             {% if not session['logged_in'] %}
             <li class="active"><a href="/login">Login</a></li>
+            <li><a href="/about">About</a></li>
             {% else %}
             <li><a href="/play_puzzle">Play Puzzle</a></li>
             <li><a href="/browse_puzzles">Browse Puzzles</a></li>
             <li><a href="/create_puzzle">Create Puzzle</a></li>
             <li><a href="/submit_pair">Submit Hint/Answer</a></li>
             <li><a href="/logout">Logout</a></li>
+            <li><a href="/about">About</a></li>
             <!--<li class="active"><a href="/state">State</a></li>-->
             {% endif %}
-            <li><a href="#about">About</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>

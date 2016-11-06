@@ -15,7 +15,9 @@ login_form = ['username', 'password']
 submit_form = ['hint', 'answer']  # , 'theme']
 
 app.secret_key = urandom(24)
-
+max_xw_size = 25
+message_too_long = "Error: Answer '{0}' must not be longer than {1} letters"
+message_nonalpha = "Error: Answer '{0}' must only contain letters."
 CsrfProtect(app)
 
 
@@ -38,6 +40,11 @@ def login_required(f):
 @app.route('/')
 def index():
     return render_template('index.html', session=session)
+
+
+@app.route('/about')
+def about():
+    return render_template('about.html', session=session)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -126,6 +133,19 @@ def submit_pair():
                                             HintAnswerPair.hint == hint,
                                             HintAnswerPair.answer == answer
                                                         ).scalar()
+            if not answer.isalpha():
+                message = message_nonalpha.format(answer)
+                return render_template(
+                                        'index.html',
+                                        message=message
+                                      )
+
+            if len(answer) > max_xw_size:
+                message = message_too_long.format(answer,  max_xw_size)
+                return render_template(
+                                        'index.html',
+                                        message=message
+                                      )
 
             if pair_exists is None:
                 newPair = HintAnswerPair(
@@ -205,6 +225,20 @@ def create_puzzle():
         for hint_key, answer_key in zip(hint_keys, answer_keys):
             hint = request.form[hint_key]
             answer = request.form[answer_key].upper()
+
+            if len(answer) > max_xw_size:
+                message = message_too_long.format(answer, max_xw_size)
+                return render_template(
+                                        'index.html',
+                                        message=message
+                                      )
+            if not answer.isalpha():
+                message = message_nonalpha.format(answer)
+                return render_template(
+                                        'index.html',
+                                        message=message
+                                      )
+
             print("Hint: ", hint)
             print("Answer: ", answer)
 
@@ -212,7 +246,6 @@ def create_puzzle():
                 message = "Error: Invalid Request Arguments."
                 return render_template('index.html', message=message)
 
-            # pair = (hint, answer)
             pair = (answer, hint)
             pairs.append(pair)
 
@@ -234,11 +267,11 @@ def create_puzzle():
                 db.session.commit()
                 hint_ids[pair] = new_pair.haid
 
-        # word_list = [x[1] for x in pairs]
         word_list = [x[0] for x in pairs]
         print("Word list: ", word_list)
         print("Pairs: ", pairs)
-        new_puzzle = Crossword(25, 25, "-", 5000, pairs)
+
+        new_puzzle = Crossword(max_xw_size, max_xw_size, "-", 5000, pairs)
         new_puzzle.compute_crossword(3)
         new_puzzle.order_number_words()
 
@@ -253,7 +286,7 @@ def create_puzzle():
             return render_template('index.html', message=message)
 
         # Create the crossword puzzle
-        puzzle = CrosswordPuzzle(len(pairs), 25, 25, title)
+        puzzle = CrosswordPuzzle(len(pairs), max_xw_size, max_xw_size, title)
         db.session.add(puzzle)
         db.session.commit()
 
@@ -267,7 +300,6 @@ def create_puzzle():
         # Create a hint answer pair map entry for each hint answer
         # pair. These will describe how to layout the puzzle.
         for pair in pairs:
-            # hint, answer = pair
             answer, hint = pair
 
             row, col, axis, num = word_descriptions[answer]
