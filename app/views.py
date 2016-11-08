@@ -69,10 +69,7 @@ def login():
             if username == "" or password == "":
                 return redirect(url_for('login'))
 
-            try:
-                user_exists = User.query.filter_by(uname=username).first()
-            except:
-                user_exists = None  # Need to exercise this line
+            user_exists = User.query.filter_by(uname=username).first()
 
             if user_exists:
                 if createhash(user_exists.salt, password) ==\
@@ -85,9 +82,7 @@ def login():
                                             message='Login successful'
                                           )
 
-            return redirect(url_for('login'))
-        else:
-            return redirect(url_for('login'))
+        return redirect(url_for('login'))
     else:
         return render_template('login.html')
 
