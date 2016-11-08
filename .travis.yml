@@ -9,7 +9,7 @@ before_script:
   - flake8 --exclude app/dbmodels --exclude fill_db.py app
   - flake8 run.py
 script:
-  - python3 -m nose --with-coverage
+  - python3 -m nose --with-coverage -v
   - coverage report -m --fail-under=10
 
 after_success:
