@@ -2,7 +2,9 @@ language: python
 python:
   - "3.4"
 # command to install dependencies
-install: pip install -r requirements.txt
+install:
+  - pip install -r requirements.txt
+  - pip install coveralls
 before_script:
   - flake8 --exclude app/dbmodels --exclude fill_db.py app
   - flake8 run.py
