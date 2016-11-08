@@ -94,6 +94,15 @@ class LoginTest(AppTest):
 
         self.assertIn(text, response.data)
 
+    def test_login_required(self):
+        response = self.client.get('/play_puzzle', follow_redirects=True)
+        self.assertIn(b'<form id="login-form" action="/login"', response.data)
+
+    def test_non_existent_user(self):
+        response = self.client.post('/login', data=dict(username='idontexist', password='idontexist'),
+                                    follow_redirects=True)
+        self.assertIn(b'<form id="login-form" action="/login"', response.data)
+
 
 class RegisterTest(AppTest):
 
@@ -327,7 +336,7 @@ class CreatePuzzleTest(LoggedInAppTest):
                     answer_4="constitutionalmonarchy"
                     ), follow_redirects=True)
 
-        self.assertIn(b'Error: Invalid Request Arguments', response.data) 
+        self.assertIn(b'Error: Invalid Request Arguments', response.data)
 
     def test_notitle_create_puzzle(self):
 
@@ -470,6 +479,13 @@ class JapaneseTest(LoggedInAppTest):
                         answer="的場"
         ), follow_redirects=True)
 
-        assert "only contain the letters A to Z" in response.data.decode() 
+        assert "only contain the letters A to Z" in response.data.decode()
+
+
+class AboutTest(AppTest):
+
+    def test_about(self):
+        response = self.client.get('/about', follow_redirects=True)
+        self.assertIn(b'xword is a social crossword web application that will challenge players', response.data)
 
 
