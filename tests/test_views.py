@@ -206,61 +206,66 @@ class RegisterAndLoginTest(AppTest):
 
 
 class SubmitHintAnswerPairTest(LoggedInAppTest):
+    expected_ascii_error = b'must only contain the letters A to Z'
+    expected_length_error = b'must not be longer than'
+    expected_success = b'Submission successful'
 
     def test_submit_pair(self):
-        expected_success = b'Submission successful'
-        expected_error = b'must only contain the letters A to Z'
 
         response = self.client.post('/submit_pair', data=dict(
                         hint="You took these in school.",
                         answer="exams"
         ), follow_redirects=True)
 
-        self.assertIn(expected_success, response.data)
+        self.assertIn(self.expected_success, response.data)
 
+    def test_submit_quote(self):
         response = self.client.post('/submit_pair', data=dict(
             hint="Conan ___, TBS late night show host",
             answer="o'brien"
         ), follow_redirects=True)
 
-        self.assertIn(expected_error, response.data)
+        self.assertIn(self.expected_ascii_error, response.data)
 
-        assert 'Invalid answer' in response.data.decode()
-
+    def test_submit_empty(self):
         response = self.client.post('/submit_pair', data=dict(
             hint="Empty answer",
             answer=""
         ), follow_redirects=True)
 
-        self.assertIn(expected_error, response.data)
+        self.assertIn(self.expected_ascii_error, response.data)
 
+    def test_submit_numbers(self):
         response = self.client.post('/submit_pair', data=dict(
             hint="The answer to life, the universe and everything",
             answer="42"
         ), follow_redirects=True)
 
-        self.assertIn(expected_error, response.data)
+        self.assertIn(self.expected_ascii_error, response.data)
 
+    def test_submit_dash(self):
         response = self.client.post('/submit_pair', data=dict(
             hint="The answer to life, the universe and everything",
             answer="Forty-Two"
         ), follow_redirects=True)
 
-        self.assertIn(expected_error, response.data)
+        self.assertIn(self.expected_ascii_error, response.data)
 
+    def test_submit_spaces(self):
         response = self.client.post('/submit_pair', data=dict(
             hint="The Gettysburg Address",
             answer="Four score and seven years ago our fathers brought forth, on this continent"
         ), follow_redirects=True)
 
-        self.assertIn(expected_error, response.data)
+        self.assertIn(self.expected_ascii_error, response.data)
 
+    def test_submit_long(self):
         response = self.client.post('/submit_pair', data=dict(
             hint="A very long answer",
             answer="ThisIsAVeryLongAnswerThatMostCertainlyShouldBeRejectedByTheApplication"
         ), follow_redirects=True)
 
-        self.assertIn(expected_error, response.data)
+        self.assertIn(self.expected_length_error, response.data)
 
 
 class CreatePuzzleTest(LoggedInAppTest):
