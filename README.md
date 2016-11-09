@@ -1,30 +1,31 @@
 # xword
 [![Build Status](https://travis-ci.org/A-star-vengers/xword.svg?branch=master)](https://travis-ci.org/A-star-vengers/xword)
 
+[![Coverage Status](https://coveralls.io/repos/github/A-star-vengers/xword/badge.svg?branch=master)](https://coveralls.io/github/A-star-vengers/xword?branch=master)
 
-xword is a social crossword web application that will challenge players to solve puzzles of different 
-difficulties and show them how they fare against other players. 
+xword is a social crossword web application that will challenge players to solve puzzles of different
+difficulties and show them how they fare against other players.
 
 ##
 cs4156 course project
 
-team a-star-vengers: 
+team a-star-vengers:
   * arc2205@columbia.edu
   * bm2787@columbia.edu
   * km3227@columbia.edu
   * vr2262@columbia.edu
-  
-## 
+
+##
 Main task board:
 https://trello.com/b/j1ojqHO0/xword-board
 
 Build status:
 https://travis-ci.org/A-star-vengers/xword
 
-Contained in this repo is the code for the xword app, written in Python (3.4) using the flask framework. 
-## 
+Contained in this repo is the code for the xword app, written in Python (3.4) using the flask framework.
+##
 
-See the Travis CI link above for more information, but we anticipate that something like this should 
+See the Travis CI link above for more information, but we anticipate that something like this should
 comprise a canonical run:
 
   * git clone https://github.com/A-star-vengers/xword.git
@@ -34,9 +35,9 @@ comprise a canonical run:
   * pip install -r requirements.txt
   * python3 run.py
   * (open http://127.0.0.1:5000/, or whatever address is shown in the terminal into your favourite web browser)
-  
+
 ##
-The layout follows what seems to be the convention for flask: 
+The layout follows what seems to be the convention for flask:
   * run.py -- the entry point to the app
   * tests.py -- test cases
   * util -- contains utilities around demoing the app
