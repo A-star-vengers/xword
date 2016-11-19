@@ -9,6 +9,7 @@ from app.puzzle.crossword import Crossword
 from functools import wraps
 from os import urandom
 import random
+import json
 
 register_form = ['username', 'email', 'password', 'confirm']
 login_form = ['username', 'password']
@@ -218,12 +219,91 @@ def browse_puzzles(page):
         return render_template('browse_puzzles.html', paginated=paginated)
 
 
+@app.route("/suggests", methods=['GET'])
+@login_required
+def suggests():
+
+    num_suggests = int(request.args.get('num_suggests', 0))
+
+    if num_suggests == 0:
+        return json.dumps({})
+
+    # Could also add another get parameter to ensure that we do
+    # not return hints we have already suggested
+
+    ids = set(map(lambda x: x[0],
+                  HintAnswerPair.query.with_entities(
+                  HintAnswerPair.haid).all()
+                  )
+              )
+
+    if len(ids) >= num_suggests:
+        samples = random.sample(ids, num_suggests)
+    else:
+        samples = ids
+
+    uid = HintAnswerPair.query[0].author
+    username = User.query.filter_by(uid=uid).first().uname
+
+    pairs = HintAnswerPair.query.filter(HintAnswerPair.haid.in_(samples))
+
+    suggestions = []
+
+    for pair in pairs:
+
+        username = User.query.filter_by(uid=pair.author).first().uname
+
+        suggestions.append(
+            {
+                "hint": pair.hint,
+                "answer": pair.answer,
+                "author": username,
+            }
+        )
+
+    return json.dumps(suggestions)
+
+
 @app.route("/create_puzzle", methods=['GET', 'POST'])
 @login_required
 def create_puzzle():
 
     if request.method == 'GET':
-        return render_template('create_puzzle.html')
+
+        # Initialize suggestions with 6 Hint/Answer pairs
+        # randomly chosen from the Hint/Answer pair table
+
+        ids = set(map(lambda x: x[0],
+                      HintAnswerPair.query.with_entities(
+                      HintAnswerPair.haid).all()
+                      )
+                  )
+
+        if len(ids) >= 6:
+            samples = random.sample(ids, 6)
+        else:
+            samples = ids
+
+        uid = HintAnswerPair.query[0].author
+        username = User.query.filter_by(uid=uid).first().uname
+
+        pairs = HintAnswerPair.query.filter(HintAnswerPair.haid.in_(samples))
+
+        suggestions = []
+
+        for pair in pairs:
+
+            username = User.query.filter_by(uid=pair.author).first().uname
+
+            suggestions.append(
+                {
+                    "hint": pair.hint,
+                    "answer": pair.answer,
+                    "author": username,
+                }
+            )
+
+        return render_template('create_puzzle.html', suggestions=suggestions)
 
     if request.method == 'POST':
         post_params = request.form.to_dict()

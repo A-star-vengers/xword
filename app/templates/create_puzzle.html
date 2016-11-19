@@ -54,6 +54,21 @@
                             </tr>
                         </thead>
                         <tbody>
+                            {% for suggestion in suggestions %}
+                                <tr>
+                                    <td>{{ suggestion.hint }}</td>
+                                    <td>{{ suggestion.answer }}</td>
+                                    <td>{{ suggestion.author }}</td>
+                                    <td class="td-actions">
+                                        <a href="javascript:;" class="btn btn-small btn-primary btn-add">
+                                            <span class="glyphicon glyphicon-plus"></span>
+                                        </a>
+                                        <a href="javascript:;" class="btn btn-small btn-primary btn-remove">
+                                            <span class="glyphicon glyphicon-minus"></span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
                         <!--
                             <tr>
                                 <td>An economic system in which the central government controls, owns factories, farms and offices</td>
@@ -98,7 +113,10 @@
                         </tbody>
                     </table>
                     <br>
+                    <input type="submit" name="new_suggests" id="new_suggests" class="form-control btn btn-primary" value="Get Different Suggestions!">
+                    <br>
                     <small>Press <span class="glyphicon glyphicon-plus gs"></span> to add suggested Hint/Answer pair to include in the puzzle.</small>
+                    <br>
                     <small>Press <span class="glyphicon glyphicon-minus gs"></span> to remove suggested Hint/Answer pair and retrieve new suggestion.</small>
                     </div>
                 </div>

@@ -25,9 +25,9 @@ $(function()
         var test = $(this).parents('.entry:first')[0];
         if ( test.suggestion )
         {
-            console.log(test.hint);
-            console.log(test.answer);
-            console.log(test.author);
+            //console.log(test.hint);
+            //console.log(test.answer);
+            //console.log(test.author);
             // Clone the item back into the suggestion table
             var suggestForm = $('tbody');
 
@@ -109,10 +109,83 @@ $(function()
         // Update the suggestion table with new suggestions
     }).on('click', '.btn-small.btn-remove', function(e)
     {
-        //Remove the suggestion and retrieve a new one
+        e.preventDefault();
+
         $(this).parents('tr').remove();
 
-        //Send ajax query containing GET request with removed suggestion
-        //as well as number of new suggestions to retrieve
+        $.ajax({
+                url : '/suggests',
+                type : 'GET',
+                data : 'num_suggests=1',
+                success : function(data) 
+                        {
+                            var suggestForm = $('tbody');
+
+                            var json_hints = JSON.parse(data);
+
+                            for (var hint_num in json_hints)
+                            {
+                                var suggest = json_hints[hint_num];
+
+                                suggestForm.append(
+                                    '<tr>' +
+                                        '<td>' + suggest['hint'] + '</td>' +
+                                        '<td>' + suggest['answer'] + '</td>' +
+                                        '<td>' + suggest['author'] + '</td>' +
+                                        '<td class="td-actions">' +
+                                            '<a href="javascript:;" class="btn btn-small btn-primary btn-add">' +
+                                                '<span class="glyphicon glyphicon-plus"></span>' +
+                                            '</a>' +
+                                            '<a href="javascript:;" class="btn btn-small btn-primary btn-remove">' +
+                                                '<span class="glyphicon glyphicon-minus"></span>' +
+                                            '</a>' +
+
+                                        '</td>' +
+                                    '</tr>'
+                                );
+                            }
+                        }
+            });
+    }).on('click', '#new_suggests', function(e)
+    {
+        $.ajax({
+            url : '/suggests',
+            type : 'GET',
+            data : 'num_suggests=6',
+            success : function(data) 
+                    {
+                        $('tbody').empty();
+
+                        var suggestForm = $('tbody');
+
+                        var json_hints = JSON.parse(data);
+
+                        //console.log(json_hints);
+
+                        for (var hint_num in json_hints)
+                        {
+                            var suggest = json_hints[hint_num];
+
+                            //console.log(suggest);
+
+                            suggestForm.append(
+                                '<tr>' +
+                                    '<td>' + suggest['hint'] + '</td>' +
+                                    '<td>' + suggest['answer'] + '</td>' +
+                                    '<td>' + suggest['author'] + '</td>' +
+                                    '<td class="td-actions">' +
+                                        '<a href="javascript:;" class="btn btn-small btn-primary btn-add">' +
+                                            '<span class="glyphicon glyphicon-plus"></span>' +
+                                        '</a>' +
+                                        '<a href="javascript:;" class="btn btn-small btn-primary btn-remove">' +
+                                            '<span class="glyphicon glyphicon-minus"></span>' +
+                                        '</a>' +
+
+                                    '</td>' +
+                                '</tr>'
+                            );
+                        }
+                    }
+        });
     });
 });
