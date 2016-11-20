@@ -314,9 +314,6 @@ def suggests():
     else:
         samples = ids
 
-    uid = HintAnswerPair.query[0].author
-    username = User.query.filter_by(uid=uid).first().uname
-
     pairs = HintAnswerPair.query.filter(HintAnswerPair.haid.in_(samples))
 
     suggestions = []
