@@ -31,22 +31,25 @@ $(function()
             // Clone the item back into the suggestion table
             var suggestForm = $('tbody');
 
-            suggestForm.append(
-                '<tr>' +
-                    '<td>' + test.hint + '</td>' +
-                    '<td>' + test.answer + '</td>' +
-                    '<td>' + test.author + '</td>' +
-                    '<td class="td-actions">' +
-                        '<a href="javascript:;" class="btn btn-small btn-primary btn-add">' +
-                            '<span class="glyphicon glyphicon-plus"></span>' +
-                        '</a>' +
-                        '<a href="javascript:;" class="btn btn-small btn-primary btn-remove">' +
-                            '<span class="glyphicon glyphicon-minus"></span>' +
-                        '</a>' +
+            if (suggestForm[0].children.length < 6)
+            {
+                suggestForm.append(
+                    '<tr>' +
+                        '<td>' + test.hint + '</td>' +
+                        '<td>' + test.answer + '</td>' +
+                        '<td>' + test.author + '</td>' +
+                        '<td class="td-actions">' +
+                            '<a href="javascript:;" class="btn btn-small btn-primary btn-add">' +
+                                '<span class="glyphicon glyphicon-plus"></span>' +
+                            '</a>' +
+                            '<a href="javascript:;" class="btn btn-small btn-primary btn-remove">' +
+                                '<span class="glyphicon glyphicon-minus"></span>' +
+                            '</a>' +
 
-                    '</td>' +
-                '</tr>'
-            );
+                        '</td>' +
+                    '</tr>'
+                );
+            }
         }
 
         $(this).parents('.entry:first').remove();
