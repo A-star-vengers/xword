@@ -67,7 +67,10 @@ def login():
             password = request.form['password']
 
             if username == "" or password == "":
-                return redirect(url_for('login'))
+                return render_template(
+                                       'login.html',
+                                        message='Error: Empty username or password'
+                                      )
 
             user_exists = User.query.filter_by(uname=username).first()
 
@@ -82,7 +85,11 @@ def login():
                                             message='Login successful'
                                           )
 
-        return redirect(url_for('login'))
+        return render_template(
+                                       'login.html',
+                                        message='Error: Bad Login'
+                                      )
+              # redirect(url_for('login'))
     else:
         return render_template('login.html')
 

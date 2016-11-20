@@ -5,6 +5,7 @@
     <div class="row">
             <div class="col-md-6 col-md-offset-3">
                 <div class="panel panel-login">
+
                     <div class="panel-heading">
                         <div class="row">
                             <div class="col-xs-6">
@@ -16,6 +17,7 @@
                         </div>
                         <hr>
                     </div>
+
                     <div class="panel-body">
                         <div class="row">
                             <div class="col-lg-12">
@@ -73,6 +75,11 @@
                             </div>
                         </div>
                     </div>
+
+                    {% if message %}
+                    <p class="lead">{{ message }}<br></p>
+                    {% endif %}
+
                 </div>
             </div>
         </div>
