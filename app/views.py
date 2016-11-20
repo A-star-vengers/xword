@@ -284,11 +284,34 @@ def themes():
 
     num_themes = int(request.args.get('num_themes', 0))
 
-    if num_themes == 0:
+    if num_themes <= 0:
         return json.dumps({})
 
-    # ids = set(map(lambda x: x[0],
-    return json.dumps({})
+    # Prefix from the keyup even in the theme field
+    prefix = request.args.get('prefix', "")
+
+    if prefix != "":
+        themes = Theme.query.filter(Theme.theme.like(prefix + "%")).all()
+    else:
+        themes = Theme.query.all()
+
+    tdict = {}
+
+    if len(themes) < num_themes:
+        tdict = {
+                    "themes": list(map(lambda x: x.theme, themes))
+                }
+    else:
+        ts = list(map(lambda x: x.theme, themes))
+
+        # Chose a num_themes random entries from the themes
+        ts = random.sample(ts, num_themes)
+
+        tdict = {
+                    "themes": ts
+                }
+
+    return json.dumps(tdict)
 
 
 @app.route("/suggests", methods=['GET'])

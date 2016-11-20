@@ -31,8 +31,33 @@ $(function()
 
         console.log("Field keyed.");
 
+        console.log($(this).find('input'));
+
+        var prefix = $(this)[0].value;
+
         $(this).autocomplete( {
-            source : ["one", "two", "three"]
+
+            source: function (request, response)
+                {
+                    $.ajax({
+                        url : '/themes',
+                        type : 'GET',
+                        data :
+                            {
+                                "num_themes" : 10,
+                                "prefix" : prefix
+                            },
+                        success : function(data)
+                                {
+                                    var jsource = JSON.parse(data);
+
+                                    console.log(jsource);
+
+                                    response(jsource["themes"]);
+                                }
+                        }
+                    );
+                }
         });
     });
 });
