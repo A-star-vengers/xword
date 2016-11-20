@@ -2,8 +2,8 @@
 {% block mainbody %}
 <div class="container">
     <div class="row">
-        <h1>Submit Hint/Answer Pair</h1>
-        <div class="col-md-4">
+        <div class="col-md-6 col-md-offset-2">
+            <h1>Submit Hint/Answer Pair</h1>
             <form id="pair-form" action="/submit_pair" method="post" role="form">
                   <div class="form-group">
                     <label for="hint">Hint</label>
@@ -13,12 +13,41 @@
                     <label for="answer">Answer</label>
                     <input type="text" class="form-control" id="answer" name="answer" placeholder="Example answer">
                   </div>
-                  <!--
-                  <div class="form-group">
-                    <label for="theme">Theme</label>
-                    <input type="text" class="form-control" id="theme" name="theme" placeholder="Example Theme. Can be Empty.">
+                  <div class="row clearfix">
+                      <div class="col-md-12 column">
+                          <label for="tab_logic">Themes (Optional)</label>
+                          <table class="table table-bordered table-hover" id="tab_logic">
+                              <thead>
+                                  <tr >
+                                      <th class="text-center">
+                                          Theme
+                                      </th>
+                                      <th class="td-actions">
+                                      </th>
+                                  </tr>
+                              </thead>
+                              <tbody>
+                                  <tr>
+                                      <td>
+                                        <input type="text" name='theme1' placeholder='Theme' class="form-control"/>
+                                      </td>
+                                      <td>
+                                        <a href="javascript:;" class="btn btn-small btn-primary btn-add">
+                                            <span class="glyphicon glyphicon-plus"></span>
+                                        </a> 
+                                        <!--
+                                        <a href="javascript:;" class="btn btn-small btn-primary btn-remove">
+                                            <span class="glyphicon glyphicon-minus"></span>
+                                        </a> 
+                                        -->
+                                      </td>
+                                  </tr>
+                              </tbody>
+                          </table>
+                      </div>
                   </div>
-                  -->
+                  <!--<a id="add_theme" class="btn btn-default pull-left">Add Row</a><a id='delete_row' class="pull-right btn btn-default">Delete Row</a>-->
+                  <br>
                   <div class="form-group">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <input type="submit" name="pair-submit" id="pair-submit" tabindex="4" class="form-control btn btn-primary" value="Submit Hint Answer Pair">
@@ -27,4 +56,7 @@
         </div>
     </div>
 </div>
+{% endblock %}
+{% block jsinclude %}
+    <script src="{{ url_for('static', filename='js/submit_hint.js') }}"></script>
 {% endblock %}
