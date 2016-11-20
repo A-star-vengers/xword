@@ -24,5 +24,15 @@ $(function()
     on('click', '.btn-remove', function(e)
     {
         $(this).parents('tr').remove();
+    })
+    .on('keyup', '.theme-input', function(e)
+    {
+        e.preventDefault();
+
+        console.log("Field keyed.");
+
+        $(this).autocomplete( {
+            source : ["one", "two", "three"]
+        });
     });
 });
