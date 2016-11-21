@@ -338,7 +338,9 @@ def create_puzzle():
             return render_template('index.html', message=message)
 
         # Create the crossword puzzle
-        puzzle = CrosswordPuzzle(len(pairs), max_xw_size, max_xw_size, title)
+        creator = session['uid']
+
+        puzzle = CrosswordPuzzle(len(pairs), max_xw_size, max_xw_size, title, creator)
         db.session.add(puzzle)
         db.session.commit()
 

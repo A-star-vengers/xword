@@ -160,9 +160,11 @@ class CrosswordPuzzle(db.Model):
     #Number of cells horizontally in the puzzle
     num_cells_across = db.Column(db.Integer)
     title = db.Column(db.String(32), unique=False)
+    creator = db.Column(db.Integer, db.ForeignKey("user.uid"), nullable=True)
 
-    def __init__(self, num_hints, num_cells_down, num_cells_across, title):
+    def __init__(self, num_hints, num_cells_down, num_cells_across, title, creator):
         self.num_hints = num_hints
         self.num_cells_down = num_cells_down
         self.num_cells_across = num_cells_across
         self.title = title
+        self.creator = creator
