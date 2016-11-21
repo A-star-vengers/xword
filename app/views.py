@@ -323,19 +323,45 @@ def suggests():
     if num_suggests == 0:
         return json.dumps({})
 
-    # Could also add another get parameter to ensure that we do
-    # not return hints we have already suggested
+    theme = request.args.get('theme', '')
 
-    ids = set(map(lambda x: x[0],
-                  HintAnswerPair.query.with_entities(
-                  HintAnswerPair.haid).all()
+    if theme != '':
+        # Check if theme exists otherwise just return random
+        # suggestions
+        texists = Theme.query.filter_by(theme=theme).first()
+
+        if not texists:
+            return json.dumps({})
+
+        tid = texists.tid
+
+        # Get num suggests Hint/Answer pairs that match
+        # the theme
+        ids = set(map(lambda x: x[0],
+                      HintAnswerThemeMap.query.with_entities(
+                      HintAnswerThemeMap.haid).
+                      filter_by(theme=tid)
+                      )
                   )
-              )
 
-    if len(ids) >= num_suggests:
-        samples = random.sample(ids, num_suggests)
+        if len(ids) >= num_suggests:
+            samples = random.sample(ids, num_suggests)
+        else:
+            samples = ids
     else:
-        samples = ids
+        # Could also add another get parameter to ensure that we do
+        # not return hints we have already suggested
+
+        ids = set(map(lambda x: x[0],
+                      HintAnswerPair.query.with_entities(
+                      HintAnswerPair.haid).all()
+                      )
+                  )
+
+        if len(ids) >= num_suggests:
+            samples = random.sample(ids, num_suggests)
+        else:
+            samples = ids
 
     pairs = HintAnswerPair.query.filter(HintAnswerPair.haid.in_(samples))
 

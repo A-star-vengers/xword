@@ -1,5 +1,79 @@
 $(function()
 {
+    function getSuggests(theme)
+    {
+        //var theme = $('.theme-input')[0].value;
+
+        console.log("getSuggests");
+        console.log("Theme " + theme);
+
+        var ajax_params = {};
+
+        if (theme == "" || theme == undefined)
+        {
+            ajax_params =
+                {
+                    "num_suggests" : 6
+                };
+        }
+        else
+        {
+            ajax_params =
+                {
+                    "num_suggests" : 6,
+                    "theme" : theme
+                };
+        }
+
+        $.ajax({
+            url : '/suggests',
+            type : 'GET',
+            data :
+                {
+                    "num_suggests" : 6,
+                    "theme" : theme
+                }
+            ,
+            success : function(data)
+                    {
+                        var json_hints = JSON.parse(data);
+
+                        if (json_hints == {})
+                            return;
+
+                        $('tbody').empty();
+
+                        var suggestForm = $('tbody');
+
+                        //console.log(json_hints);
+
+                        for (var hint_num in json_hints)
+                        {
+                            var suggest = json_hints[hint_num];
+
+                            //console.log(suggest);
+
+                            suggestForm.append(
+                                '<tr>' +
+                                    '<td>' + suggest['hint'] + '</td>' +
+                                    '<td>' + suggest['answer'] + '</td>' +
+                                    '<td>' + suggest['author'] + '</td>' +
+                                    '<td class="td-actions">' +
+                                        '<a href="javascript:;" class="btn btn-small btn-primary btn-add">' +
+                                            '<span class="glyphicon glyphicon-plus"></span>' +
+                                        '</a>' +
+                                        '<a href="javascript:;" class="btn btn-small btn-primary btn-remove">' +
+                                            '<span class="glyphicon glyphicon-minus"></span>' +
+                                        '</a>' +
+
+                                    '</td>' +
+                                '</tr>'
+                            );
+                        }
+                    }
+        });
+    };
+
     $(document).on('click', '.btn-add.btn-success', function(e)
     {
         e.preventDefault();
@@ -116,79 +190,68 @@ $(function()
 
         $(this).parents('tr').remove();
 
-        $.ajax({
-                url : '/suggests',
-                type : 'GET',
-                data : 'num_suggests=1',
-                success : function(data) 
-                        {
-                            var suggestForm = $('tbody');
+        var theme = $('.theme-input')[0].value;
 
-                            var json_hints = JSON.parse(data);
+        getSuggests(theme);
 
-                            for (var hint_num in json_hints)
-                            {
-                                var suggest = json_hints[hint_num];
-
-                                suggestForm.append(
-                                    '<tr>' +
-                                        '<td>' + suggest['hint'] + '</td>' +
-                                        '<td>' + suggest['answer'] + '</td>' +
-                                        '<td>' + suggest['author'] + '</td>' +
-                                        '<td class="td-actions">' +
-                                            '<a href="javascript:;" class="btn btn-small btn-primary btn-add">' +
-                                                '<span class="glyphicon glyphicon-plus"></span>' +
-                                            '</a>' +
-                                            '<a href="javascript:;" class="btn btn-small btn-primary btn-remove">' +
-                                                '<span class="glyphicon glyphicon-minus"></span>' +
-                                            '</a>' +
-
-                                        '</td>' +
-                                    '</tr>'
-                                );
-                            }
-                        }
-            });
     }).on('click', '#new_suggests', function(e)
     {
-        $.ajax({
-            url : '/suggests',
-            type : 'GET',
-            data : 'num_suggests=6',
-            success : function(data) 
-                    {
-                        $('tbody').empty();
+        var theme = $('.theme-input')[0].value;
 
-                        var suggestForm = $('tbody');
+        getSuggests(theme);
 
-                        var json_hints = JSON.parse(data);
+    })
+    .on('keyup', '.theme-input', function(e)
+    {
+        e.preventDefault();
 
-                        //console.log(json_hints);
+        //console.log("Field keyed.");
 
-                        for (var hint_num in json_hints)
-                        {
-                            var suggest = json_hints[hint_num];
+        //console.log($(this).find('input'));
 
-                            //console.log(suggest);
+        var prefix = $(this)[0].value;
 
-                            suggestForm.append(
-                                '<tr>' +
-                                    '<td>' + suggest['hint'] + '</td>' +
-                                    '<td>' + suggest['answer'] + '</td>' +
-                                    '<td>' + suggest['author'] + '</td>' +
-                                    '<td class="td-actions">' +
-                                        '<a href="javascript:;" class="btn btn-small btn-primary btn-add">' +
-                                            '<span class="glyphicon glyphicon-plus"></span>' +
-                                        '</a>' +
-                                        '<a href="javascript:;" class="btn btn-small btn-primary btn-remove">' +
-                                            '<span class="glyphicon glyphicon-minus"></span>' +
-                                        '</a>' +
+        $(this).autocomplete( {
 
-                                    '</td>' +
-                                '</tr>'
-                            );
+            source: function (request, response)
+                {
+                    $.ajax({
+                        url : '/themes',
+                        type : 'GET',
+                        data :
+                            {
+                                "num_themes" : 10,
+                                "prefix" : prefix
+                            },
+                        success : function(data)
+                                {
+                                    var jsource = JSON.parse(data);
+
+                                    //console.log(jsource);
+
+                                    response(jsource["themes"]);
+                                }
                         }
+                    );
+                },
+            select: function (evt, ui)
+                {
+                    //console.log(ui);
+                    //console.log(ui.item.value);
+                    getSuggests(ui.item.value);
+                },
+            response: function (evt, ui)
+                {
+                    //console.log("response");
+                    //console.log("prefix " + prefix);
+                    //console.log(ui.content);
+
+                    for (var i = 0; i < ui.content.length; i++)
+                    {
+                        if (prefix == ui.content[i].value)
+                            getSuggests(ui.content[i].value);
                     }
+                }
         });
     });
 });
