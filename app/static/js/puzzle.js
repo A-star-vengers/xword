@@ -129,6 +129,7 @@ Vue.component('xwrd-time', {
 Vue.component('xwrd-puzzle', {
     template: '<div>\
                 <center><h1> {{ title }}</h1></center>\
+                <center><h1> Created by {{ creator }}</h1></center>\
                 <xwrd-grid\
                   :nrows="nrows"\
                   :ncols="ncols"\
@@ -215,7 +216,7 @@ Vue.component('xwrd-puzzle', {
             totalTime: 0,
         }
     },
-    props: ['title', 'nrows', 'ncols', 'hintsList'],
+    props: ['title', 'creator', 'nrows', 'ncols', 'hintsList'],
     created: function() {
         bus.$on('key-press', function(event) {
             this.onKeyPress(event);
@@ -321,6 +322,7 @@ var xwrd = new Vue({
     el: '#xwrd',
     data: {
         title: puzzleData.title,
+        creator: puzzleData.creator,
         nrows: puzzleData.nrows,
         ncols: puzzleData.ncols,
         hints: puzzleData.hints,

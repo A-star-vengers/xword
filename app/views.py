@@ -419,6 +419,7 @@ def play_puzzle():
 
     puzzleData = {
         'title': puzzle.title,
+        'creator': puzzle.creator,
         'nrows': puzzle.num_cells_down,
         'ncols': puzzle.num_cells_across,
         'hints': [
