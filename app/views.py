@@ -417,9 +417,18 @@ def play_puzzle():
 
     puzzle = CrosswordPuzzle.query.get(selected_id)
 
+#    username = User.query.filter_by(uname=username).first()
+#    uid = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
+#   User.uname == username
+    creator = User.query.filter_by(uid=puzzle.creator).first()
+    creator_username = creator.uname
+#    print('{0}'.format(puzzle.title))
+    # print(class(puzzle.title))
+#    print('Puzzle created by {0} (uid {1})'.format(creator_username, puzzle.creator))
+
     puzzleData = {
         'title': puzzle.title,
-        'creator': puzzle.creator,
+        'creator': creator_username,
         'nrows': puzzle.num_cells_down,
         'ncols': puzzle.num_cells_across,
         'hints': [
