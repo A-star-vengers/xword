@@ -142,6 +142,128 @@ def register():
         return render_template('login.html')
 
 
+@app.route('/submit_pairs', methods=['POST', 'GET'])
+@login_required
+def submit_pairs():
+
+    if request.method == 'GET':
+        return redirect(url_for('login'))
+
+    post_params = request.form.to_dict()
+
+    # print("Post Params: " + str(post_params))
+
+    hints = sorted(filter(lambda x: "hint_" in x, post_params))
+    answers = sorted(filter(lambda x: "answer_" in x, post_params))
+    themes = sorted(filter(lambda x: "theme_" in x, post_params))
+
+    if len(hints) != len(answers) or len(hints) == 0:
+        message = "Error: Invalid Request Arguments."
+        return render_template('index.html', message=message)
+
+    bad_pairs = list(filter(lambda x: x[0].split("_")[1] != x[1].split("_")[1],
+                            zip(hints, answers)))
+
+    if len(bad_pairs) > 0:
+        message = "Error: Invalid Request Arguments."
+        return render_template('index.html', message=message)
+
+    for hint_key, answer_key in zip(hints, answers):
+        hint = request.form[hint_key]
+        answer = request.form[answer_key].upper()
+
+        # print( "Hint: " + hint)
+        # print( "Answer: " + answer)
+
+        if len(answer) < min_hint_len:
+            message = message_too_short.format(answer, min_hint_len)
+            app.logger.error(message)
+            return render_template(
+                                    'index.html',
+                                    message=message
+                                  )
+
+        if len(answer) > max_hint_len:
+            message = message_too_long.format(answer, max_hint_len)
+            app.logger.error(message)
+            return render_template(
+                                    'index.html',
+                                    message=message
+                                  )
+
+        if not is_valid_answer(answer):
+            message = message_nonalpha.format(answer)
+            app.logger.error(message)
+            return render_template(
+                                    'index.html',
+                                    message=message
+                                  )
+
+        if hint == '' or answer == '':
+            message = "Error: Invalid Request Arguments."
+            return render_template('index.html', message=message)
+
+        pair_themes = list(filter(lambda x:
+                                  x.split("_")[1] == hint_key.split("_")[1],
+                                  themes
+                                  )
+                           )
+
+        pair_themes = list(map(lambda x: request.form[x], pair_themes))
+
+        # Unique the themes
+        pair_themes = list(set(pair_themes))
+
+        # print( "Pair Themes: " + str(pair_themes))
+
+        pair_exists = HintAnswerPair.query.filter(
+                                HintAnswerPair.hint == hint,
+                                HintAnswerPair.answer == answer
+                                                  ).scalar()
+
+        if pair_exists is None:
+
+            # Create the pair
+            newPair = HintAnswerPair(
+                                    answer, hint,
+                                    session['uid']
+                                    )
+            db.session.add(newPair)
+            db.session.commit()
+
+            for theme in pair_themes:
+
+                texists = Theme.query.filter_by(theme=theme).first()
+
+                if texists:
+                    tid = texists.tid
+                else:
+
+                    newTheme = Theme(theme)
+                    db.session.add(newTheme)
+                    db.session.commit()
+
+                    tid = newTheme.tid
+
+                new_hamap = HintAnswerThemeMap(newPair.haid, tid)
+                db.session.add(new_hamap)
+                db.session.commit()
+
+            return render_template(
+                                    'index.html',
+                                    message='Submission Successful'
+                                    )
+        else:
+
+            # For now silently ignore
+            pass
+
+    return render_template(
+                            'index.html',
+                            message='Submission Successful'
+                           )
+
+
 @app.route('/submit_pair', methods=['GET', 'POST'])
 @login_required
 def submit_pair():

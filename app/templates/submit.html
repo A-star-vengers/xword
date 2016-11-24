@@ -70,6 +70,7 @@
                            </tr>
                        </thead>
                        <tbody>
+                       <!--
                             <td>Test Hint</td>
                             <td>Test Answer</td>
                             <td>
@@ -78,14 +79,16 @@
                                     <span class="glyphicon glyphicon-minus"></span>
                                 </a> 
                             </td>
+                       -->
                        </tbody>
                     </table>
                     <br>
-                    <input type="submit" name="submit_pairs" id="submit_pairs" class="form-control btn btn-primary" value="Submit Hint Answer Pairs For Future Puzzles!">
+                    <input type="submit" name="submit_pairs" id="submit_pairs" class="form-control btn btn-primary" value="Submit Hint Answer Pairs For Future Puzzles!"/>
                 </div>
             </div>
         </div>
 </div>
+<input type="hidden" name="csrf_grab" id="csrf_grab" value="{{ csrf_token() }}"/>
 {% endblock %}
 {% block jsinclude %}
     <script src="{{ url_for('static', filename='js/submit_hint.js') }}"></script>

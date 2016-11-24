@@ -143,6 +143,25 @@ $(function()
                 '<tr>' +
                   '<td>' +
                     '<div class="ui-widget">' +
+                        '<input type="text" name=\'theme' + i + '\' placeholder=\'Theme\' class="form-control theme-input"/>' +
+                    '</div>' +
+                  '</td>' +
+                  '<td>' +
+                    '<a href="javascript:;" class="btn btn-small btn-danger btn-primary btn-remove">' +
+                        '<span class="glyphicon glyphicon-minus"></span>' +
+                    '</a>' +
+                  '</td>' +
+                '</tr>'
+            );
+
+            console.log("Saved Themes: " + savedThemes[i]);
+            hPairInfo.find('tbody').children().last().find('input')[0].value = savedThemes[i];
+        }
+
+        hPairInfo.find('tbody').append(
+                '<tr>' +
+                  '<td>' +
+                    '<div class="ui-widget">' +
                         '<input type="text" name=\'theme1\' placeholder=\'Theme\' class="form-control theme-input"/>' +
                     '</div>' +
                   '</td>' +
@@ -154,11 +173,7 @@ $(function()
                 '</tr>'
             );
 
-            console.log("Saved Themes: " + savedThemes[i]);
-            hPairInfo.find('tbody').last().find('input')[0].value = savedThemes[i];
-        }
-
-        
+        $(this).parents('tr').remove();
     })
     .on('keyup', '.theme-input', function(e)
     {
@@ -194,5 +209,74 @@ $(function()
                     );
                 }
         });
+    })
+    .on('click', '#submit_pairs', function(e)
+    {
+        var allPairs = $(this).parents().find('.for-submission').find('tr').slice(1);
+
+        if (allPairs.length == 0)
+        {
+            //Do nothing but probably should flash message
+            //with error
+            return;
+        }
+        //Construct form with hint/answer pairs + themes and perform post 
+        //request
+
+        var postForm = $('<form></form>');
+
+        postForm.attr('method', 'post');
+        postForm.attr('action', '/submit_pairs');
+
+        //Retreive all hint/answers + themes and append to form
+        $.each(allPairs, 
+            function(index, value)
+            {
+                var savedInfo = value.saved_hint;
+
+                var newField1 = $('<input></input>');
+
+                newField1.attr('type', 'hidden');
+                newField1.attr('name', 'hint_' + index);
+                newField1.attr('value', savedInfo["hint"]);
+
+                postForm.append(newField1);
+
+                var newField2 = $('<input></input>');
+
+                newField2.attr('type', 'hidden');
+                newField2.attr('name', 'answer_' + index);
+                newField2.attr('value', savedInfo["answer"]);
+
+                postForm.append(newField2);
+
+                for (var i = 0; i < savedInfo["themes"].length; i++)
+                {
+                    var newField = $('<input></input');
+
+                    newField.attr('type', 'hidden');
+                    newField.attr('name', 'theme_' + index + '_' + i);
+                    newField.attr('value', savedInfo["themes"][i]);
+
+                    postForm.append(newField);
+                }
+
+            }
+        );
+
+        var csrf_token = $('#csrf_grab').val();
+
+        console.log("CSRF Token: ");
+        console.log(csrf_token);
+
+        var csrfField = $('<input></input>');
+        csrfField.attr('type', 'hidden');
+        csrfField.attr('name', 'csrf_token');
+        csrfField.attr('value', csrf_token);
+
+        postForm.append(csrfField);
+
+        $(document.body).append(postForm);
+        postForm.submit();
     });
 });
