@@ -2,9 +2,10 @@
 {% block mainbody %}
 <div class="container">
     <div class="row">
-        <div class="col-md-6 col-md-offset-2">
+        <div class="col-md-6">
             <h1>Submit Hint/Answer Pair</h1>
-            <form id="pair-form" action="/submit_pair" method="post" role="form">
+            <!--<form id="pair-form" action="/submit_pair" method="post" role="form">-->
+            <form id="pair-form" role="form">
                   <div class="form-group">
                     <label for="hint">Hint</label>
                     <input type="text" class="form-control" id="hint" name="hint" placeholder="Example hint">
@@ -52,11 +53,38 @@
                   <br>
                   <div class="form-group">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                    <input type="submit" name="pair-submit" id="pair-submit" tabindex="4" class="form-control btn btn-primary" value="Submit Hint Answer Pair">
+                    <input type="submit" name="pair-addition" id="pair-addition" tabindex="4" class="form-control btn btn-primary" value="Add Hint Answer Pair For Submission">
                   </div>
             </form>
+       </div>
+       <div class="col-md-6">
+           <h1>Hint Answer Pairs For Submission</h1>
+           <div class="widget stacked widget-table action-table">
+               <div class="widget-content">
+                   <table class="table table-striped table-bordered for-submission">
+                       <thead>
+                           <tr>
+                               <th>Hint</th>
+                               <th>Answer</th>
+                               <th class="td-actions"></th>
+                           </tr>
+                       </thead>
+                       <tbody>
+                            <td>Test Hint</td>
+                            <td>Test Answer</td>
+                            <td>
+                                <button type="button" class="btn btn-primary edit-pair">Edit Pair</button>
+                                <a href="javascript:;" class="btn btn-danger btn-primary btn-remove">
+                                    <span class="glyphicon glyphicon-minus"></span>
+                                </a> 
+                            </td>
+                       </tbody>
+                    </table>
+                    <br>
+                    <input type="submit" name="submit_pairs" id="submit_pairs" class="form-control btn btn-primary" value="Submit Hint Answer Pairs For Future Puzzles!">
+                </div>
+            </div>
         </div>
-    </div>
 </div>
 {% endblock %}
 {% block jsinclude %}
