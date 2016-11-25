@@ -129,8 +129,8 @@ Vue.component('xwrd-time', {
 Vue.component('xwrd-puzzle', {
     template: '<div>\
                 <center><h1> {{ title }}</h1></center>\
-                <center><h2> Created by {{ creator }}</h2></center>\
-                <center><h2> With answers authored by {{ authors }}</h2></center>\
+                <center><h4> Created by {{ creator }}</h4></center>\
+                <center><h4> With answers authored by {{ authors }}</h4></center>\
                 <xwrd-grid\
                   :nrows="nrows"\
                   :ncols="ncols"\

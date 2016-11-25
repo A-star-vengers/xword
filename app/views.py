@@ -404,6 +404,7 @@ def play_puzzle():
         .add_columns(
             HintAnswerPair.hint,
             HintAnswerPair.answer,
+            HintAnswerPair.author,
             PuzzleHintsMapTable.axis,
             PuzzleHintsMapTable.cell_across,
             PuzzleHintsMapTable.cell_down,
@@ -417,13 +418,41 @@ def play_puzzle():
 
     puzzle = CrosswordPuzzle.query.get(selected_id)
 
-    creator = User.query.filter_by(uid=puzzle.creator).first()
-    creator_username = creator.uname
+    get_uname = lambda uid: User.query.filter_by(uid=puzzle.creator).first().uname
+
+    # creator = User.query.filter_by(uid=puzzle.creator).first()
+    # creator_username = creator.uname
+    creator_username = get_uname (uid=puzzle.creator)
+
+    authors = User.query.filter_by(uid=puzzle.creator).first()
+    authors_string = 'ABC';
+    author_uids = [hint.author for hint in raw_hints]
+    author_unames = [get_uname(uid) for uid in author_uids]
+    author_unique_unames = list(set(author_unames))
+
+    print('Author UIDs')
+    print(author_uids)
+
+    print('Author unames')
+    print(author_unames)
+
+    print('Unique Authors')
+    print(author_unique_unames)
+
+    f = lambda x: ', '.join(x[:-1]) + ', and ' + x[-1]
+
+    if 1 == len(author_unique_unames):
+        authors_string = author_unique_unames[0]
+    elif 2 == len(author_unique_unames):
+        authors_string = author_unique_unames[0] + ' and ' + author_unique_unames[1]
+    else: 
+        authors_string = f(author_unique_unames)
+
 
     puzzleData = {
         'title': puzzle.title,
         'creator': creator_username,
-        'authors': 'ABC',
+        'authors': authors_string,
         'nrows': puzzle.num_cells_down,
         'ncols': puzzle.num_cells_across,
         'hints': [
