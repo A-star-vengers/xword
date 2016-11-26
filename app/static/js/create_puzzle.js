@@ -102,28 +102,10 @@ $(function()
 
         entries.each(function( index )
         {
-            console.log("Each index: " + index);
-            console.log("H3 value: " + $(this).find('h3').val());
             $(this).find('h3').text('Pair ' + index);
             $(this).find('input[name^=hint]').attr("name", "hint_" + index);
             $(this).find('input[name^=answer]').attr("name", "answer_" + index);
         });
-
-        /*
-        for (var i = 0; i < entries.length; i++)
-        {
-            entries.get(i).find('h2').val('Pair ' + i);
-            entries.get(i).find('input[name^=hint]').attr("name", "hint_" + i);
-            entries.get(i).find('input[name^=answer]').attr("name", "answer_" + i);
-        }*/
-
-        /*
-        for (var i = 0; i < pairForm.children().length - 3; i++)
-        {
-            pairForm.children().get(i+3).find('h2').val('Pair ' + i);
-            pairForm.children().get(i+3).find('input[name^=hint]').attr("name", "hint_" + i); 
-            pairForm.children().get(i+3).find('input[name^=answer]').attr("name", "answer_" + i);
-        }*/
     })
     .on('click', '.btn-small.btn-add', function(e)
     {
@@ -152,58 +134,71 @@ $(function()
         '</div>'
         );
     })
-    /*.on('click', '.btn-small.btn-add', function(e)
+    .on('click', '#submit_hints', function(e)
     {
-        e.preventDefault();
+        var allPairs = $('.entry_wrap');
 
-        var hint = $(this).parents('tr').children()[0].innerText;
+        if (allPairs.length == 0)
+        {
+            //Ignore the submission if not pairs selected
+        }
 
-        var answer = $(this).parents('tr').children()[1].innerText;
+        var postForm = $('<form></form>');
 
-        var author = $(this).parents('tr').children()[2].innerText;
+        postForm.attr('method', 'post');
+        postForm.attr('action', '/create_puzzle');
 
-        var controlForm = $('.controls form:first')[0];
+        var title = $('#title');
 
-        var lastEntry = controlForm.children[controlForm.children.length-1];
+        var newField = $('<input></input>');
+        newField.attr('type', 'hidden');
+        newField.attr('name', 'title');
+        newField.attr('value', title.val());
 
-        var controlForm2 = $('.controls form:first');
-        var currentEntry = controlForm2.find('.entry:last');
+        postForm.append(newField);
 
-        var newEntry = $(currentEntry.clone()).appendTo(controlForm2);
+        $.each(allPairs,
+            function(index, value)
+            {
+                var inputs = $(this).find('input');
 
-        var lastEntryHint = lastEntry.children[0];
-        var lastEntryAnswer = lastEntry.children[1];
+                console.log(inputs);
 
-        lastEntryHint.value = hint;
-        lastEntryAnswer.value = answer;
+                var newField = $('<input></input>');
 
-        //Create an arbitrary attribute to query for when this is removed
-        //When removed place back in table
-        lastEntry.hint = hint;
-        lastEntry.answer = answer;
-        lastEntry.suggestion = true;
-        lastEntry.author = author;
+                console.log(inputs[0].innerText);
 
-        var newLength = $('.controls .entry').length;
+                newField.attr('type', 'hidden');
+                newField.attr('name', 'hint_' + index);
+                newField.attr('value', inputs.first().val());
 
-        newEntry.find('input').val('');
-        newEntry.find(':submit').val('Create Puzzle!');
+                postForm.append(newField);
 
-        newEntry.find('input[name^=hint]').attr("name", "hint_" + newLength);
-        newEntry.find('input[name^=answer]').attr("name", "answer_" + newLength);
+                console.log(inputs[1].innerText);
 
-        controlForm2.find('.entry:not(:last) .btn-add')
-            .removeClass('btn-add').addClass('btn-remove')
-            .removeClass('btn-success').addClass('btn-danger')
-            .html('<span class="glyphicon glyphicon-minus"></span>');
-        controlForm2.find('.entry:not(:last) .btn-primary')
-            .remove();
+                var newField2 = $('<input></input>');
 
-        // Remove the current element from the suggestion table
-        $(this).parents('tr').remove();
+                newField2.attr('type', 'hidden');
+                newField2.attr('name', 'answer_' + index);
+                newField2.attr('value', inputs.last().val());
 
-        // Update the suggestion table with new suggestions
-    })*/.on('click', '.btn-small.btn-remove', function(e)
+                postForm.append(newField2);
+            }
+        );
+
+        var csrf_token = $('#csrf_grab').val();
+
+        var csrfField = $('<input></input>');
+        csrfField.attr('type', 'hidden');
+        csrfField.attr('name', 'csrf_token');
+        csrfField.attr('value', csrf_token);
+
+        postForm.append(csrfField);
+
+        $(document.body).append(postForm);
+        postForm.submit();
+    })
+    .on('click', '.btn-small.btn-remove', function(e)
     {
         e.preventDefault();
 

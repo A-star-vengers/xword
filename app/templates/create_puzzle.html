@@ -30,7 +30,7 @@
                             </span>
                         </div>-->
                     </form>
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <input type="hidden" name="csrf_grab" id="csrf_grab" value="{{ csrf_token() }}" />
                     <input type="submit" name="submit_hints" id="submit_hints" action=tabindex="4" class="form-control btn btn-primary" value="Create Puzzle!">
                     <br>
                     <small>Press <span class="glyphicon glyphicon-plus gs"></span> to add another Hint/Answer pair to include in the puzzle.</small>
