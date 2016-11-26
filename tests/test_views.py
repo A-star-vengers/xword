@@ -8,6 +8,21 @@ from app.dbmodels import CrosswordPuzzle
 
 import flask_wtf
 
+def register_and_login(x, username):
+    # password and email are pretty unused at the moment
+     response = x.client.post('/register', data=dict(
+                        username=username,
+                        email='test@gmail.com',
+                        password='test',
+                        confirm='test',
+     ), follow_redirects=True)
+
+     response = x.client.post('/login', data=dict(
+                        username=username,
+                        password='test'
+     ), follow_redirects=True)
+
+
 
 class AppTest(TestCase):
 
@@ -29,22 +44,36 @@ class AppTest(TestCase):
 
 class LoggedInAppTest(AppTest):
 
+    def setUp(self):
+        super(LoggedInAppTest, self).setUp()
+        register_and_login(self, 'test')
+#        response = self.client.post('/register', data=dict(
+#                        username='test',
+#                        email='test@gmail.com',
+#                        password='test',
+#                        confirm='test',
+#        ), follow_redirects=True)
+#
+#        response = self.client.post('/login', data=dict(
+#                        username='test',
+#                        password='test'
+#        ), follow_redirects=True)
+
+class LoggedInAppTestWithFilledQuestionDb(LoggedInAppTest):
 
     def setUp(self):
+        super(LoggedInAppTestWithFilledQuestionDb, self).setUp()
 
-        super(LoggedInAppTest, self).setUp()
+        response = self.client.post('/create_puzzle', data=dict(
+                title="Geography Questions",
+                hint_1="The movement of people from one place to another ",
+                answer_1="migration",
+                hint_2="The number of deaths each year per 1,000 people ",
+                answer_2="deathrate",
+                hint_3="Owners and workers who make products ",
+                answer_3="producers",
+                    ), follow_redirects=True)
 
-        response = self.client.post('/register', data=dict(
-                        username='test',
-                        email='test@gmail.com',
-                        password='test',
-                        confirm='test',
-        ), follow_redirects=True)
-
-        response = self.client.post('/login', data=dict(
-                        username='test',
-                        password='test'
-        ), follow_redirects=True)
 
 
 class LoginTest(AppTest):
@@ -445,9 +474,10 @@ class BrowsePuzzleTest(LoggedInAppTest):
     def fill_fake_puzzle_db(self):
 
         title = "Puzzle"
+        creator = 1
 
         for x in range(100):
-            puzzle = CrosswordPuzzle(10, 25, 25, title + str(x))
+            puzzle = CrosswordPuzzle(10, 25, 25, title + str(x), title)
             db.session.add(puzzle)
             db.session.commit()
 
@@ -489,3 +519,22 @@ class AboutTest(AppTest):
         self.assertIn(b'xword is a social crossword web application that will challenge players', response.data)
 
 
+class PuzzleCreatorRenderTest(LoggedInAppTestWithFilledQuestionDb):
+    def test_puzzle_creator_renders(self):
+        response = self.client.get('/play_puzzle', follow_redirects=True)
+
+        self.assertIn(b'"creator": "test", "', response.data)
+
+# 
+# class QuestionAuthorsRenderTest(LoggedInAppTestWithFilledQuestionDb):
+#     def test_quastion_authors_renders(self):
+#         response = self.client.get('/logout', follow_redirects=True)
+#         register_and_login(self, 'test2')
+#         response = self.client.post('/submit_pair', data=dict(
+#                         hint="Another hint",
+#                         answer="AnotherAnswer"
+#         ), follow_redirects=True)
+# 
+#         response = self.client.get('/play_puzzle', follow_redirects=True)
+#         # self.assertIn(b'With answers authored by test and test2', response.data)
+#         self.assertIn(b'With answers authored by test and test2', response.data)
