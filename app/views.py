@@ -248,11 +248,6 @@ def submit_pairs():
                 new_hamap = HintAnswerThemeMap(newPair.haid, tid)
                 db.session.add(new_hamap)
                 db.session.commit()
-
-            return render_template(
-                                    'index.html',
-                                    message='Submission Successful'
-                                    )
         else:
 
             # For now silently ignore
@@ -523,6 +518,13 @@ def create_puzzle():
             samples = random.sample(ids, 6)
         else:
             samples = ids
+
+        if len(ids) == 0:
+            return render_template(
+                                   'index.html',
+                                   message="No hint/answer pairs to create " + \
+                                           "puzzle from. Please create them."
+                                  )
 
         uid = HintAnswerPair.query[0].author
         username = User.query.filter_by(uid=uid).first().uname

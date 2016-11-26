@@ -133,6 +133,9 @@ $(function()
             '</div>' +
         '</div>'
         );
+
+        //Remove the suggestion from the display
+        $(this).parents('tr').remove();
     })
     .on('click', '#submit_hints', function(e)
     {
