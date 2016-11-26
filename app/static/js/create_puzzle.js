@@ -96,45 +96,66 @@ $(function()
             .remove();
     }).on('click', '.btn-remove.btn-danger', function(e)
     {
-        var test = $(this).parents('.entry:first')[0];
-        if ( test.suggestion )
+        $(this).parents('.entry_wrap').remove();
+
+        var entries = $('.entry_wrap'); 
+
+        entries.each(function( index )
         {
-            //console.log(test.hint);
-            //console.log(test.answer);
-            //console.log(test.author);
-            // Clone the item back into the suggestion table
-            var suggestForm = $('tbody');
+            console.log("Each index: " + index);
+            console.log("H3 value: " + $(this).find('h3').val());
+            $(this).find('h3').text('Pair ' + index);
+            $(this).find('input[name^=hint]').attr("name", "hint_" + index);
+            $(this).find('input[name^=answer]').attr("name", "answer_" + index);
+        });
 
-            if (suggestForm[0].children.length < 6)
-            {
-                suggestForm.append(
-                    '<tr>' +
-                        '<td>' + test.hint + '</td>' +
-                        '<td>' + test.answer + '</td>' +
-                        '<td>' + test.author + '</td>' +
-                        '<td class="td-actions">' +
-                            '<a href="javascript:;" class="btn btn-small btn-primary btn-add">' +
-                                '<span class="glyphicon glyphicon-plus"></span>' +
-                            '</a>' +
-                            '<a href="javascript:;" class="btn btn-small btn-primary btn-remove">' +
-                                '<span class="glyphicon glyphicon-minus"></span>' +
-                            '</a>' +
+        /*
+        for (var i = 0; i < entries.length; i++)
+        {
+            entries.get(i).find('h2').val('Pair ' + i);
+            entries.get(i).find('input[name^=hint]').attr("name", "hint_" + i);
+            entries.get(i).find('input[name^=answer]').attr("name", "answer_" + i);
+        }*/
 
-                        '</td>' +
-                    '</tr>'
-                );
-            }
-        }
+        /*
+        for (var i = 0; i < pairForm.children().length - 3; i++)
+        {
+            pairForm.children().get(i+3).find('h2').val('Pair ' + i);
+            pairForm.children().get(i+3).find('input[name^=hint]').attr("name", "hint_" + i); 
+            pairForm.children().get(i+3).find('input[name^=answer]').attr("name", "answer_" + i);
+        }*/
+    })
+    .on('click', '.btn-small.btn-add', function(e)
+    {
+        var pairForm = $('#pair_form');
 
-        $(this).parents('.entry:first').remove();
+        var formLength = pairForm.children().length;
 
-        e.preventDefault();
-        return false;
-    }).on('click', '.btn-small.btn-add', function(e)
+        console.log(formLength);
+
+        var hint = $(this).parents('tr').children()[0].innerText;
+
+        var answer = $(this).parents('tr').children()[1].innerText;
+
+        pairForm.append(
+        '<div class="entry_wrap">' +
+            '<h3>Pair ' + (formLength - 3) + '</h3>' +
+            '<div class="entry input-group col-s-3">' +
+                '<input class="form-control" readonly name="hint_' + (formLength - 3) + '" type="text" value="' + hint + '"/>' +
+                '<input class="form-control" readonly name="answer_' + (formLength - 3) + '" type="text" value="' + answer + '"/>' +
+                '<span class="input-group-btn">' +
+                    '<button class="btn btn-danger btn-remove btn-primary" type="button">' +
+                        '<span class="glyphicon glyphicon-minus"></span>' +
+                    '</button>' +
+                '</span>' +
+            '</div>' +
+        '</div>'
+        );
+    })
+    /*.on('click', '.btn-small.btn-add', function(e)
     {
         e.preventDefault();
 
-        /* Update hint/answer pair addition part of the page */
         var hint = $(this).parents('tr').children()[0].innerText;
 
         var answer = $(this).parents('tr').children()[1].innerText;
@@ -178,13 +199,11 @@ $(function()
         controlForm2.find('.entry:not(:last) .btn-primary')
             .remove();
 
-        /* Update the suggestion part of the page */
-
         // Remove the current element from the suggestion table
         $(this).parents('tr').remove();
 
         // Update the suggestion table with new suggestions
-    }).on('click', '.btn-small.btn-remove', function(e)
+    })*/.on('click', '.btn-small.btn-remove', function(e)
     {
         e.preventDefault();
 
