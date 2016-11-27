@@ -9,11 +9,14 @@ $(function()
 
         var ajax_params = {};
 
+        var csrf_token = $('#csrf_grab').val();
+
         if (theme == "" || theme == undefined)
         {
             ajax_params =
                 {
-                    "num_suggests" : 6
+                    "num_suggests" : 6,
+                    "csrf_token" : csrf_token
                 };
         }
         else
@@ -21,17 +24,39 @@ $(function()
             ajax_params =
                 {
                     "num_suggests" : 6,
-                    "theme" : theme
+                    "theme" : theme,
+                    "csrf_token" : csrf_token
                 };
         }
 
+        var hints = [];
+        var answers = [];
+
+        $(".entry_wrap").each( function (index) {
+            var hint = $(this).find('input[name^=hint]').val();
+            hints.push(hint);
+            var answer = $(this).find('input[name^=answer]').val();
+            answers.push(answer);
+        });
+
+        console.log("Hints: ");
+        console.log(hints);
+
+        console.log("Answers: ");
+        console.log(answers);
+
         $.ajax({
             url : '/suggests',
-            type : 'GET',
+            type : 'POST',
+            datatype : 'json',
+            method : 'POST',
             data :
                 {
                     "num_suggests" : 6,
-                    "theme" : theme
+                    "theme" : theme,
+                    "hints" : JSON.stringify(hints),
+                    "answers" : JSON.stringify(answers),
+                    "csrf_token" : csrf_token
                 }
             ,
             success : function(data)
@@ -102,7 +127,7 @@ $(function()
 
         entries.each(function( index )
         {
-            $(this).find('h3').text('Pair ' + index);
+            $(this).find('h3').text('Pair ' + (index + 1));
             $(this).find('input[name^=hint]').attr("name", "hint_" + index);
             $(this).find('input[name^=answer]').attr("name", "answer_" + index);
         });
@@ -121,7 +146,7 @@ $(function()
 
         pairForm.append(
         '<div class="entry_wrap">' +
-            '<h3>Pair ' + (formLength - 3) + '</h3>' +
+            '<h3>Pair ' + (formLength - 3 + 1) + '</h3>' +
             '<div class="entry input-group col-s-3">' +
                 '<input class="form-control" readonly name="hint_' + (formLength - 3) + '" type="text" value="' + hint + '"/>' +
                 '<input class="form-control" readonly name="answer_' + (formLength - 3) + '" type="text" value="' + answer + '"/>' +

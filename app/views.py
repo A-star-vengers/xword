@@ -9,6 +9,7 @@ from app.util import validate_table, getsalt, createhash
 from app.puzzle.crossword import Crossword
 from functools import wraps
 from os import urandom
+from sqlalchemy import not_, and_
 import random
 import json
 
@@ -438,16 +439,30 @@ def themes():
     return json.dumps(tdict)
 
 
-@app.route("/suggests", methods=['GET'])
+@app.route("/suggests", methods=['POST'])
 @login_required
 def suggests():
 
-    num_suggests = int(request.args.get('num_suggests', 0))
+    post_params = request.form.to_dict()
+
+    num_suggests = 0
+    if 'num_suggests' in post_params:
+        num_suggests = int(post_params['num_suggests'])
 
     if num_suggests == 0:
         return json.dumps({})
 
-    theme = request.args.get('theme', '')
+    theme = ''
+    if 'theme' in post_params:
+        theme = post_params['theme']
+
+    hints = []
+    if 'hints' in post_params:
+        hints = json.loads(post_params['hints'])
+
+    answers = []
+    if 'answers' in post_params:
+        answers = json.loads(post_params['answers'])
 
     if theme != '':
         # Check if theme exists otherwise just return random
@@ -468,6 +483,23 @@ def suggests():
                       )
                   )
 
+        if hints != [] and answers != []:
+
+            # Filter out pairs that are already selected to be
+            # included in the puzzle
+            sids = set(map(lambda x: x.haid,
+                           HintAnswerPair.query.
+                           filter(
+                                  and_(
+                                       not_(HintAnswerPair.hint.in_(hints)),
+                                       not_(HintAnswerPair.answer.in_(answers))
+                                       )
+                                  )
+                           )
+                       )
+
+            ids = ids.intersection(sids)
+
         if len(ids) >= num_suggests:
             samples = random.sample(ids, num_suggests)
         else:
@@ -481,6 +513,23 @@ def suggests():
                       HintAnswerPair.haid).all()
                       )
                   )
+
+        if hints != [] and answers != []:
+
+            # Filter out pairs that are already selected to be
+            # included in the puzzle
+            sids = set(map(lambda x: x.haid,
+                           HintAnswerPair.query.
+                           filter(
+                                  and_(
+                                       not_(HintAnswerPair.hint.in_(hints)),
+                                       not_(HintAnswerPair.answer.in_(answers))
+                                       )
+                                  )
+                           )
+                       )
+
+            ids = ids.intersection(sids)
 
         if len(ids) >= num_suggests:
             samples = random.sample(ids, num_suggests)
@@ -529,8 +578,8 @@ def create_puzzle():
         if len(ids) == 0:
             return render_template(
                                    'index.html',
-                                   message="No hint/answer pairs to create " + \
-                                           "puzzle from. Please create them."
+                                   message="No hint/answer pairs to create"
+                                           " puzzle from. Please create them."
                                   )
 
         uid = HintAnswerPair.query[0].author
