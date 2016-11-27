@@ -152,7 +152,7 @@ def submit_pairs():
 
     post_params = request.form.to_dict()
 
-    # print("Post Params: " + str(post_params))
+    print("Post Params: " + str(post_params))
 
     hints = sorted(filter(lambda x: "hint_" in x, post_params))
     answers = sorted(filter(lambda x: "answer_" in x, post_params))
@@ -168,6 +168,15 @@ def submit_pairs():
     if len(bad_pairs) > 0:
         message = "Error: Invalid Request Arguments."
         return render_template('index.html', message=message)
+
+    report_template = """
+        Successful Submissions {}\n
+        Errored Submissions:\n{}
+    """
+
+    successes = 0
+
+    failures = []
 
     for hint_key, answer_key in zip(hints, answers):
         hint = request.form[hint_key]
@@ -246,14 +255,20 @@ def submit_pairs():
                 new_hamap = HintAnswerThemeMap(newPair.haid, tid)
                 db.session.add(new_hamap)
                 db.session.commit()
+
+            successes += 1
         else:
 
             # For now silently ignore
-            pass
+            failures.append("Hint " + str(hint) + " : Answer "
+                            + str(answer) + " pair exists")
+
+    filled_template = report_template.format(str(successes),
+                                             "\n\n".join(failures))
 
     return render_template(
                             'index.html',
-                            message='Submission Successful'
+                            report=filled_template
                            )
 
 

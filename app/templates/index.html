@@ -8,6 +8,11 @@
         {% else %}
         <p class="lead">{{ message }}<br></p>
         {% endif %}
+        {% if report %}
+        <pre>
+        {{ report }}
+        </pre>
+        {% endif %}
       </div>
 </div>
 {% endblock %}
