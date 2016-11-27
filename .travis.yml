@@ -8,7 +8,9 @@ install:
 before_script:
   - flake8 --exclude app/dbmodels --exclude fill_db.py app
   - flake8 run.py
+
 script:
+  - python3 run.py
   - python3 -m nose --with-coverage -v
   - coverage report -m --fail-under=10
 
