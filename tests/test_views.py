@@ -214,6 +214,7 @@ class RegisterAndLoginTest(AppTest):
         assert 'Login successful' in response.data.decode()
 
 
+"""
 class SubmitHintAnswerPairTest(LoggedInAppTest):
     expected_ascii_error = b'must only contain the letters A to Z'
     expected_length_error = b'must not be longer than'
@@ -272,6 +273,71 @@ class SubmitHintAnswerPairTest(LoggedInAppTest):
         response = self.client.post('/submit_pair', data=dict(
             hint="A very long answer",
             answer="ThisIsAVeryLongAnswerThatMostCertainlyShouldBeRejectedByTheApplication"
+        ), follow_redirects=True)
+
+        self.assertIn(self.expected_length_error, response.data)
+"""
+
+def SubmitPairsTest(LoggedInAppTest):
+
+    expected_ascii_error = b'must only contain the letters A to Z'
+    expected_length_error = b'must not be longer than'
+    expected_success = b'Submission successful'
+
+    def test_submit_pair(self):
+
+        response = self.client.post('/submit_pairs', data=dict(
+                        hint_0="You took these in school.",
+                        answer_0="exams"
+        ), follow_redirects=True)
+
+        self.assertIn(self.expected_success, response.data)
+
+    def test_submit_quote(self):
+        response = self.client.post('/submit_pairs', data=dict(
+            hint_0="Conan ___, TBS late night show host",
+            answer_0="o'brien"
+        ), follow_redirects=True)
+
+        self.assertIn(self.expected_ascii_error, response.data)
+
+    def test_submit_empty(self):
+        response = self.client.post('/submit_pairs', data=dict(
+            hint_0="Empty answer",
+            answer_0=""
+        ), follow_redirects=True)
+
+        self.assertIn(self.expected_ascii_error, response.data)
+
+    def test_submit_numbers(self):
+        response = self.client.post('/submit_pairs', data=dict(
+            hint_0="The answer to life, the universe and everything",
+            answer_0="42"
+        ), follow_redirects=True)
+
+        self.assertIn(self.expected_ascii_error, response.data)
+
+    def test_submit_dash(self):
+        response = self.client.post('/submit_pairs', data=dict(
+            hint_0="The answer to life, the universe and everything",
+            answer_0="Forty-Two"
+        ), follow_redirects=True)
+
+        self.assertIn(self.expected_ascii_error, response.data)
+
+
+    def test_submit_spaces(self):
+        response = self.client.post('/submit_pairs', data=dict(
+            hint_0="The Gettysburg Address",
+            answer_0="Four score and seven years ago our fathers brought forth, on this continent"
+        ), follow_redirects=True)
+
+        self.assertIn(self.expected_ascii_error, response.data)
+
+    def test_submit_long(self):
+        response = self.client.post('/submit_pairs', data=dict(
+            hint_0="A very long answer",
+            answer_0="ThisIsAVeryLongAnswerThatMostCertainlyShouldBeRejectedByTheApplication"
         ), follow_redirects=True)
 
         self.assertIn(self.expected_length_error, response.data)
@@ -474,9 +540,9 @@ class JapaneseTest(LoggedInAppTest):
 
     def test_submit_pair(self):
 
-        response = self.client.post('/submit_pair', data=dict(
-                        hint="Japanese hint",
-                        answer="的場"
+        response = self.client.post('/submit_pairs', data=dict(
+                        hint_0="Japanese hint",
+                        answer_0="的場"
         ), follow_redirects=True)
 
         assert "only contain the letters A to Z" in response.data.decode()
