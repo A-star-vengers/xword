@@ -160,8 +160,9 @@ def submit_pair():
 
             if not len(hint):
                 app.logger.warning("hint is empty")
-                app.logger.error(message_hint_empty)
-                return render_template('index.html', message=message_hint_empty)
+                message = message_hint_empty
+                app.logger.error(message)
+                return render_template('index.html', message=message)
 
             # Check if hint/answer pair already exists
             # in the database
