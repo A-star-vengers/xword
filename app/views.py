@@ -23,6 +23,8 @@ message_hint_empty = "Error: Submitted Hint/Answer pair has empty Hint"
 message_too_long = "Error: Answer '{0}' must not be longer than {1} letters"
 message_too_short = "Error: Answer '{0}' must not be shorter than {1} letters"
 message_nonalpha = "Error: Answer '{0}' must only contain the letters A to Z."
+message_len_hint_keys = "Error: Got zero hints"
+message_len_hint_answer_keys = "Error: amount of hints and answers must match"
 
 
 def is_valid_answer(x):
@@ -254,8 +256,14 @@ def create_puzzle():
         answer_keys = sorted(filter(lambda x: "answer_" in x, post_params))
 
         # Should respond with error if hints, answers lengths do not match
-        if len(hint_keys) != len(answer_keys) or len(hint_keys) == 0:
-            message = "Error: Invalid Request Arguments."
+        if len(hint_keys) == 0:
+            message = message_len_hint_keys
+            app.logger.warning(message)
+            return render_template('index.html', message=message)
+
+        if len(hint_keys) != len(answer_keys):
+            message = message_len_hint_answer_keys
+            app.logger.warning(message)
             return render_template('index.html', message=message)
 
         # If we decide on a minimum length for crossword puzzle questions
