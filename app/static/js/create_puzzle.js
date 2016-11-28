@@ -232,9 +232,9 @@ $(function()
 
         $(this).parents('tr').remove();
 
-        var theme = $('.theme-input')[0].value;
+        // var theme = $('.theme-input')[0].value;
 
-        getSuggests(theme);
+        // getSuggests(theme);
 
     }).on('click', '#new_suggests', function(e)
     {

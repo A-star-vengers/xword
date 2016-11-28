@@ -164,11 +164,11 @@ def register():
 def submit_pairs():
 
     if request.method == 'GET':
-        return redirect(url_for('login'))
+        return render_template('submit.html')
 
     post_params = request.form.to_dict()
 
-    # print("Post Params: " + str(post_params))
+    print("Post Params: " + str(post_params))
 
     hints = sorted(filter(lambda x: "hint_" in x, post_params))
     answers = sorted(filter(lambda x: "answer_" in x, post_params))
@@ -185,12 +185,18 @@ def submit_pairs():
         message = "Error: Invalid Request Arguments."
         return render_template('index.html', message=message)
 
+    report_template = """
+        Successful Submissions {}\n
+        Errored Submissions:\n{}
+    """
+
+    successes = 0
+
+    failures = []
+
     for hint_key, answer_key in zip(hints, answers):
         hint = request.form[hint_key]
         answer = request.form[answer_key].upper()
-
-        # print( "Hint: " + hint)
-        # print( "Answer: " + answer)
 
         if len(answer) < min_hint_len:
             message = message_too_short.format(answer, min_hint_len)
@@ -265,140 +271,21 @@ def submit_pairs():
                 new_hamap = HintAnswerThemeMap(newPair.haid, tid)
                 db.session.add(new_hamap)
                 db.session.commit()
+
+            successes += 1
         else:
 
             # For now silently ignore
-            pass
+            failures.append("Hint " + str(hint) + " : Answer "
+                            + str(answer) + " pair exists")
+
+    filled_template = report_template.format(str(successes),
+                                             "\n\n".join(failures))
 
     return render_template(
                             'index.html',
-                            message='Submission Successful'
+                            report=filled_template
                            )
-
-
-@app.route('/submit_pair', methods=['GET', 'POST'])
-@login_required
-def submit_pair():
-    if request.method == 'GET':
-        return render_template('submit.html')
-
-    if request.method == 'POST':
-
-        if 'hint' in request.form:
-            hint = request.form['hint']
-        else:
-            return redirect(url_for('login'))
-
-        if 'answer' in request.form:
-            answer = request.form['answer']
-        else:
-            return redirect(url_for('login'))
-
-            if not len(hint):
-                app.logger.warning("hint is empty")
-                message = message_hint_empty
-                app.logger.error(message)
-                return render_template('index.html', message=message)
-
-            # Check if hint/answer pair already exists
-            # in the database
-
-        if hint == "":
-            app.logger.warning(hint + " is empty")
-            message = message_empty.format(hint)
-            app.logger.error(message)
-            return render_template(
-                                    'index.html',
-                                    message=message
-                                  )
-
-        pair_exists = HintAnswerPair.query.filter(
-                                        HintAnswerPair.hint == hint,
-                                        HintAnswerPair.answer == answer
-                                                    ).scalar()
-        if not is_valid_answer(answer):
-            app.logger.warning(answer + " is not alphabetical")
-            message = message_nonalpha.format(answer)
-            app.logger.error(message)
-            return render_template(
-                                    'index.html',
-                                    message=message
-                                  )
-        if len(answer) < min_hint_len:
-            message = message_too_short.format(answer, min_hint_len)
-            app.logger.error(message)
-            return render_template(
-                                    'index.html',
-                                    message=message
-                                  )
-        if len(answer) > max_hint_len:
-            message = message_too_long.format(answer,  max_hint_len)
-            app.logger.error(message)
-            return render_template(
-                                    'index.html',
-                                    message=message
-                                  )
-        if pair_exists is None:
-
-            newPair = HintAnswerPair(
-                                     answer, hint,
-                                     session['uid']
-                                    )
-            db.session.add(newPair)
-            db.session.commit()
-
-            post_params = request.form.to_dict()
-
-            # Also create entry in theme map
-            themes = sorted(
-                        filter(lambda x: "theme" in x, post_params)
-                            )
-
-            for theme in themes:
-
-                tstr = post_params[theme]
-
-                # Lookup to see if theme already exists
-                texists = Theme.query.filter_by(theme=tstr).first()
-
-                if texists:
-                    # Get the theme id
-                    tid = texists.tid
-                else:
-                    # Create the theme
-
-                    newTheme = Theme(tstr)
-                    db.session.add(newTheme)
-                    db.session.commit()
-
-                    tid = newTheme.tid
-
-                # Create the mapping between Hint/Answer pair and
-                # theme
-                #
-                new_hamap = HintAnswerThemeMap(newPair.haid, tid)
-                db.session.add(new_hamap)
-                db.session.commit()
-
-            # Verify themes do not allow multi word themes or non alpha
-            # numeric characters in themes
-
-            return render_template(
-                                    'index.html',
-                                    message='Submission successful'
-                                  )
-        else:
-
-            # If there is a different theme for the hint then what is in
-            # the theme map table we should probably create a new entry
-            # in the theme map table
-
-            message = "Error: Hint/Answer pair already exists."
-            app.logger.error(message)
-            return render_template(
-                                    'index.html',
-                                    message=message
-                                  )
 
 
 @app.route("/browse_puzzles/", defaults={"page": 1})
