@@ -19,6 +19,7 @@ max_xw_size = 25
 max_hint_len = 25
 min_hint_len = 2
 
+message_hint_empty = "Error: Submitted Hint/Answer pair has empty Hint"
 message_too_long = "Error: Answer '{0}' must not be longer than {1} letters"
 message_too_short = "Error: Answer '{0}' must not be shorter than {1} letters"
 message_nonalpha = "Error: Answer '{0}' must only contain the letters A to Z."
@@ -156,6 +157,11 @@ def submit_pair():
         if validate_table(submit_form, request.form):
             hint = request.form['hint']
             answer = request.form['answer']
+
+            if not len(hint):
+                app.logger.warning("hint is empty")
+                app.logger.error(message_hint_empty)
+                return render_template('index.html', message=message_hint_empty)
 
             # Check if hint/answer pair already exists
             # in the database
