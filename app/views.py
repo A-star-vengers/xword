@@ -73,7 +73,8 @@ def login():
                 empty_message = 'Error: Empty username or password'
                 return render_template(
                                         'login.html',
-                                        message=empty_message
+                                        message=empty_message,
+                                        username=username
                                       )
 
             user_exists = User.query.filter_by(uname=username).first()
@@ -91,7 +92,8 @@ def login():
 
         return render_template(
                                 'login.html',
-                                message='Error: Bad Login'
+                                message='Error: Bad Login',
+                                username=username
                               )
     else:
         return render_template('login.html')
