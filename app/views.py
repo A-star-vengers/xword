@@ -45,7 +45,7 @@ def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if 'logged_in' not in session:
-            return redirect(url_for('login'))  # seemingly cannot happen?
+            return redirect(url_for('login', next=request.path))
         return f(*args, **kwargs)
     return decorated
 
@@ -85,6 +85,11 @@ def login():
                     session['logged_in'] = True
                     session['username'] = username
                     session['uid'] = str(user_exists.uid)
+
+                    next_url = request.form.get('next', '')
+                    if next_url:
+                        return redirect(next_url)
+
                     return render_template(
                                             'index.html',
                                             message='Login successful'
@@ -96,7 +101,7 @@ def login():
                                 username=username
                               )
     else:
-        return render_template('login.html')
+        return render_template('login.html', next=request.args.get('next', ""))
 
 
 @app.route('/logout', methods=['GET'])
