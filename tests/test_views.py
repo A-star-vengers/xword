@@ -365,7 +365,7 @@ class CreatePuzzleTest(LoggedInAppTest):
                     answer_4="constitutionalmonarchy"
                     ), follow_redirects=True)
 
-        self.assertIn(b'Error: Invalid Request Arguments', response.data)
+        self.assertIn(b'Error: amount of hints and answers must match', response.data)
 
     def test_notitle_create_puzzle(self):
 

@@ -22,10 +22,12 @@ max_xw_size = 25
 max_hint_len = 25
 min_hint_len = 2
 
+message_hint_empty = "Error: Submitted Hint/Answer pair has empty Hint"
 message_too_long = "Error: Answer '{0}' must not be longer than {1} letters"
 message_too_short = "Error: Answer '{0}' must not be shorter than {1} letters"
 message_nonalpha = "Error: Answer '{0}' must only contain the letters A to Z."
-message_empty = "Error: Empty hint is not valid."
+message_len_hint_keys = "Error: Got zero hints"
+message_len_hint_answer_keys = "Error: amount of hints and answers must match"
 
 
 def is_valid_answer(x):
@@ -46,7 +48,7 @@ def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if 'logged_in' not in session:
-            return redirect(url_for('login'))  # seemingly cannot happen?
+            return redirect(url_for('login', next=request.path))
         return f(*args, **kwargs)
     return decorated
 
@@ -74,7 +76,8 @@ def login():
                 empty_message = 'Error: Empty username or password'
                 return render_template(
                                         'login.html',
-                                        message=empty_message
+                                        message=empty_message,
+                                        username=username
                                       )
 
             user_exists = User.query.filter_by(uname=username).first()
@@ -85,6 +88,11 @@ def login():
                     session['logged_in'] = True
                     session['username'] = username
                     session['uid'] = str(user_exists.uid)
+
+                    next_url = request.form.get('next', '')
+                    if next_url:
+                        return redirect(next_url)
+
                     return render_template(
                                             'index.html',
                                             message='Login successful'
@@ -92,10 +100,11 @@ def login():
 
         return render_template(
                                 'login.html',
-                                message='Error: Bad Login'
+                                message='Error: Bad Login',
+                                username=username
                               )
     else:
-        return render_template('login.html')
+        return render_template('login.html', next=request.args.get('next', ""))
 
 
 @app.route('/logout', methods=['GET'])
@@ -285,8 +294,14 @@ def submit_pair():
         else:
             return redirect(url_for('login'))
 
-        # Check if hint/answer pair already exists
-        # in the database
+            if not len(hint):
+                app.logger.warning("hint is empty")
+                message = message_hint_empty
+                app.logger.error(message)
+                return render_template('index.html', message=message)
+
+            # Check if hint/answer pair already exists
+            # in the database
 
         if hint == "":
             app.logger.warning(hint + " is empty")
@@ -618,8 +633,14 @@ def create_puzzle():
         answer_keys = sorted(filter(lambda x: "answer_" in x, post_params))
 
         # Should respond with error if hints, answers lengths do not match
-        if len(hint_keys) != len(answer_keys) or len(hint_keys) == 0:
-            message = "Error: Invalid Request Arguments."
+        if len(hint_keys) == 0:
+            message = message_len_hint_keys
+            app.logger.warning(message)
+            return render_template('index.html', message=message)
+
+        if len(hint_keys) != len(answer_keys):
+            message = message_len_hint_answer_keys
+            app.logger.warning(message)
             return render_template('index.html', message=message)
 
         # If we decide on a minimum length for crossword puzzle questions
