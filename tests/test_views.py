@@ -4,7 +4,9 @@ import unittest
 from flask_testing import TestCase
 from app import app
 from app.db import db, init_db
-from app.dbmodels import CrosswordPuzzle
+from app.dbmodels import CrosswordPuzzle, Theme, HintAnswerPair, HintAnswerThemeMap
+
+import json
 
 import flask_wtf
 
@@ -325,7 +327,6 @@ def SubmitPairsTest(LoggedInAppTest):
 
         self.assertIn(self.expected_ascii_error, response.data)
 
-
     def test_submit_spaces(self):
         response = self.client.post('/submit_pairs', data=dict(
             hint_0="The Gettysburg Address",
@@ -341,6 +342,49 @@ def SubmitPairsTest(LoggedInAppTest):
         ), follow_redirects=True)
 
         self.assertIn(self.expected_length_error, response.data)
+
+    def test_multi_submission(self):
+
+        response = self.client.post('/submit_pairs', data=dict(
+            hint_0="Things pushed around a super market",
+            answer_0="carts",
+            hint_1="Afer curfew",
+            answer_1="late",
+            hint_2="Economist Smith",
+            answer_2="Adam"
+        ), follow_redirects=True)
+
+        self.assertIn("Successful Submissions 3", response.data)
+
+    def test_multi_theme_submission(self):
+
+        response = self.client.post('/submit_pairs', data=dict(
+            hint_0="Things pushed around a super market",
+            answer_0="carts",
+            theme_0 ="groceries",
+            hint_1="Afer curfew",
+            answer_1="late",
+            theme_1="general",
+            hint_2="Economist Smith",
+            theme_2="history",
+            answer_2="Adam"
+        ), follow_redirects=True)
+
+        self.assertIn("Successful Submissions 3", response.data)
+
+    def test_mismatch_theme_submission(self):
+
+        response = self.client.post('/submit_pairs', data=dict(
+            hint_0="Things pushed around a super market",
+            answer_0="carts",
+            hint_1="Afer curfew",
+            answer_1="late",
+            theme_1="general",
+            hint_2="Economist Smith",
+            answer_2="Adam"
+        ), follow_redirects=True)
+
+        self.assertIn("Successful Submissions 3", response.data)
 
 
 class CreatePuzzleTest(LoggedInAppTest):
@@ -535,6 +579,289 @@ class BrowsePuzzleTest(LoggedInAppTest):
 
         assert "Next" in response.data.decode() and "Prev" in response.data.decode()
 
+class ThemesAPITest(LoggedInAppTest):
+
+    def create_fake_themes(self):
+
+       themes = ["history", "geography", "sports",
+                 "fashion", "television", "animals",
+                 "cars"
+                ]
+
+       for x in themes:
+            newTheme = Theme(x)
+            db.session.add(newTheme)
+            db.session.commit()
+
+    def test_empty_themes(self):
+
+        response = self.client.get('/themes',
+                                    query_string={
+                                            "num_themes" : 6
+                                                 },
+                                    follow_redirects=True)
+
+        rdata = json.loads(response.data.decode('utf8'))
+
+        self.assertIn('themes', rdata)
+
+        self.assertEqual(rdata['themes'], [])
+
+    def test_adequate_themes(self):
+
+        self.create_fake_themes()
+
+        response = self.client.get('/themes',
+                                    query_string = {'num_themes' : 6},
+                                    follow_redirects=True)
+
+        print( dir(response.data) )
+
+        rdata = json.loads(response.data.decode('utf8'))
+
+        self.assertIn('themes', rdata)
+
+        self.assertEqual(len(rdata['themes']), 6)
+
+    def test_not_enough_themes(self):
+
+        self.create_fake_themes()
+
+        response = self.client.get('/themes',
+                                    query_string={'num_themes':8},
+                                    follow_redirects=True)
+
+        print( dir(response.data) )
+
+        rdata = json.loads(str(response.data.decode('utf8')))
+
+        self.assertIn('themes', rdata)
+
+        self.assertEqual(len(rdata['themes']), 7)
+
+    def test_prefix_exist_themes(self):
+
+        self.create_fake_themes()
+
+        response = self.client.get('/themes',
+                                    query_string={
+                                                    'num_themes':6,
+                                                    'prefix':'geo'
+                                                 },
+                                    follow_redirects=True)
+
+        rdata = json.loads(response.data.decode('utf8'))
+
+        self.assertIn('themes', rdata)
+
+        self.assertIs(len(rdata['themes']), 1)
+
+        self.assertEqual(rdata['themes'][0], 'geography')
+
+    def test_prefix_noexist_themes(self):
+
+        self.create_fake_themes()
+
+        response = self.client.get('/themes',
+                                    query_string={
+                                                    'num_themes':6,
+                                                    'prefix':'ki'
+                                                 },
+                                    follow_redirects=True)
+
+        print( dir(response.data) )
+
+        rdata = json.loads(response.data.decode('utf8'))
+
+        self.assertIn('themes', rdata)
+
+        self.assertEqual(rdata['themes'], [])
+
+class SuggestsAPITest(LoggedInAppTest):
+
+    def create_pairs(self):
+
+        pair1 = {
+                    "hint" : "The movement of people from one place to another",
+                    "answer" : "migration",
+                    "theme" : "geography",
+                    "author" : 1
+                }
+
+        pair2 = {
+                    "hint" : "Owners and workers who make products",
+                    "answer" : "producers",
+                    "theme" : "geography",
+                    "author" : 1
+                }
+
+        pair3 = {
+                    "hint" : "The number of deaths each year per 1,000 people",
+                    "answer" : "deathrate",
+                    "theme" : "geography",
+                    "author" : 1
+                }
+
+        pair4 = {
+                    "hint" : "A government in which the king is limited by law",
+                    "answer" : "constitutionalmonarchy",
+                    "theme" : "geography",
+                    "author" : 1
+                }
+
+        pair5 = {
+                    "hint" : "People who move from one country to another",
+                    "answer" : "immigrants",
+                    "theme" : "geography",
+                    "author" : 1
+                }
+
+        pair6 = {
+                    "hint" : "Nations with many industries and advanced technology",
+                    "answer" : "developednations",
+                    "theme" : "geography",
+                    "author" : 1
+                }
+
+        pairs = [pair1, pair2, pair3, pair4, pair5, pair6]
+
+        for pair in pairs:
+
+            hpair = HintAnswerPair(pair1["answer"], pair1["hint"], pair1["author"])
+            db.session.add(hpair)
+            db.session.commit()
+
+            texists = Theme.query.filter_by(theme=pair["theme"]).first()
+
+            if texists:
+                tid = texists.tid
+            else:
+                theme = Theme(pair["theme"])
+                db.session.add(theme)
+                db.session.commit()
+
+                tid = theme.tid
+
+            new_hamap = HintAnswerThemeMap(hpair.haid, tid)
+            db.session.add(new_hamap)
+            db.session.commit()
+
+    def create_mixed_pairs(self):
+
+        pair1 = {
+                    "hint" : "The movement of people from one place to another",
+                    "answer" : "migration",
+                    "theme" : "geographyOne",
+                    "author" : 1
+                }
+
+        pair2 = {
+                    "hint" : "Owners and workers who make products",
+                    "answer" : "producers",
+                    "theme" : "geographyTwo",
+                    "author" : 1
+                }
+
+        pairs = [pair1, pair2]
+
+        for pair in pairs:
+
+            hpair = HintAnswerPair(pair1["answer"], pair1["hint"], pair1["author"])
+            db.session.add(hpair)
+            db.session.commit()
+
+            texists = Theme.query.filter_by(theme=pair["theme"]).first()
+
+            if texists:
+                tid = texists.tid
+            else:
+                theme = Theme(pair["theme"])
+                db.session.add(theme)
+                db.session.commit()
+
+                tid = theme.tid
+
+            new_hamap = HintAnswerThemeMap(hpair.haid, tid)
+            db.session.add(new_hamap)
+            db.session.commit()
+
+
+    def test_no_suggests(self):
+
+        response = self.client.post('/suggests', data=dict(
+                        num_suggests=0,
+        ), follow_redirects=True)  
+
+        rdata = json.loads(response.data.decode('utf8'))
+
+        self.assertEqual(rdata, {})
+
+    def test_empty_except_num(self):
+
+        self.create_pairs()
+
+        response = self.client.post('/suggests', data=dict(
+                        num_suggests=6
+        ), follow_redirects=True)
+
+        rdata = json.loads(response.data.decode('utf8'))
+
+        self.assertEqual(len(rdata), 6)
+
+    # def test_with_hints(self):
+
+    #    self.create_pairs()
+
+    #    response = self.client.post('/suggests', data=dict(
+    #                    num_suggests=6,
+    #                    hints=json.dumps(["People who move from one country to another"]),
+    #                    answers=json.dumps(["immigrants"])
+    #                ), follow_redirects=True)
+
+    #    rdata = json.loads(response.data.decode('utf8'))
+
+    #    self.assertEqual(len(rdata), 5)
+
+    def test_with_theme(self):
+
+        self.create_pairs()
+
+        response = self.client.post('/suggests', data=dict(
+                        num_suggests=6,
+                        theme='geography'
+                   ), follow_redirects=True)
+
+        rdata = json.loads(response.data.decode('utf8'))
+
+        self.assertEqual(len(rdata), 6)
+
+    # def test_with_hint_and_theme(self):
+
+    #    self.create_pairs()
+
+    #    response = self.client.post('/suggests', data=dict(
+    #                    num_suggests=6,
+    #                    hints=json.dumps(["People who move from one country to another"]),
+    #                    answers=json.dumps(["immigrants"]),
+    #                    theme="geography"
+    #                ), follow_redirects=True)
+
+    #    rdata = json.loads(response.data.decode('utf8'))
+
+    #    self.assertEqual(len(rdata), 5)
+
+    def test_mixed_themes(self):
+
+        self.create_mixed_pairs()
+
+        response = self.client.post('/suggests', data=dict(
+                        num_suggests=6,
+                        theme="geographyOne"
+                   ), follow_redirects=True)
+
+        rdata = json.loads(response.data.decode('utf8'))
+
+        self.assertEqual(len(rdata), 1)
 
 class JapaneseTest(LoggedInAppTest):
 
