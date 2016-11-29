@@ -149,6 +149,22 @@ Vue.component('xwrd-time', {
     }
 });
 
+// Component to display the leaderboard
+Vue.component('xwrd-leaderboard', {
+    template: '<div class="leaderboard">\
+                <h3>Leaderboard</h3>\
+                <ol>\
+                    <template v-for="entry in leaderboard">\
+                        <li>\
+                            {{ entry.username }}\
+                            <xwrd-time :time="entry.time*1000"></xwrd-time>\
+                        </li>\
+                    </template>\
+                </ol>\
+               </div>',
+    props: ['leaderboard']
+});
+
 // Component to represent the whole puzzle
 Vue.component('xwrd-puzzle', {
     template: '<div>\
@@ -162,6 +178,8 @@ Vue.component('xwrd-puzzle', {
                 <center><h4> With answers authored by {{ authors }}</h4></center>\
                 <div class="panels">\
                     <div class="left-panel">\
+                        <xwrd-leaderboard :leaderboard="leaderboard">\
+                        </xwrd-leaderboard>\
                     </div>\
                     <div class="center-panel">\
                         <xwrd-grid\
@@ -254,7 +272,7 @@ Vue.component('xwrd-puzzle', {
             totalTime: 0,
         }
     },
-    props: ['title', 'creator', 'authors', 'nrows', 'ncols', 'hintsList', 'csrfToken'],
+    props: ['title', 'creator', 'authors', 'nrows', 'ncols', 'hintsList', 'csrfToken', 'leaderboard'],
     created: function() {
         bus.$on('key-press', function(event) {
             this.onKeyPress(event);
@@ -364,6 +382,7 @@ var xwrd = new Vue({
         nrows: puzzleData.nrows,
         ncols: puzzleData.ncols,
         hints: puzzleData.hints,
+        leaderboard: leaderboard
     }
 });
 

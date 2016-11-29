@@ -787,5 +787,21 @@ def play_puzzle():
             } for hint in raw_hints
         ]
     }
+
+    raw_leaderboard = (
+        UserPuzzleTimes.query
+        .join(User)
+        .add_columns(
+            User.uname,
+            UserPuzzleTimes.time
+        )
+        .filter(UserPuzzleTimes.cid == selected_id)
+        .order_by(UserPuzzleTimes.time)
+        .limit(10)
+    )
+
+    leaderboard = [{'username': entry.uname, 'time': entry.time}
+                   for entry in raw_leaderboard]
+
     session['puzzle_id'] = selected_id
-    return render_template('play_puzzle.html', puzzleData=puzzleData)
+    return render_template('play_puzzle.html', puzzleData=puzzleData, leaderboard=leaderboard)

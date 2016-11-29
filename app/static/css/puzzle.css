@@ -28,7 +28,6 @@ td {
 }
 
 .left-panel {
-    flex-basis: 15%;
     order: 1;
 }
 
@@ -37,7 +36,6 @@ td {
 }
 
 .right-panel {
-    flex-basis: 15%;
     order: 3;
 }
 
