@@ -705,14 +705,14 @@ def play_puzzle():
 
         return render_template(
             'play_puzzle.html', message='Time and rating submited!',
-            puzzleData={})
+            puzzleData={}, leaderboard=[])
 
     # If a puzzle has not been selected, choose one at random
     try:
         selected_id = request.args.get('puzzle_id', random_puzzle_id())
     except IndexError:
         return render_template(
-            'play_puzzle.html', message='No puzzles yet!', puzzleData={})
+            'play_puzzle.html', message='No puzzles yet!', puzzleData={}, leaderboard=[])
 
     raw_hints = (
         HintAnswerPair.query
@@ -730,7 +730,7 @@ def play_puzzle():
     )
     if not raw_hints:
         return render_template(
-            'play_puzzle.html', message='Puzzle not found!', puzzleData={})
+            'play_puzzle.html', message='Puzzle not found!', puzzleData={}, leaderboard=[])
 
     puzzle = CrosswordPuzzle.query.get(selected_id)
 
