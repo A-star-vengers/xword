@@ -4,15 +4,18 @@ from app import app
 from app.db import db
 from app.dbmodels import User, HintAnswerPair, CrosswordPuzzle
 from app.dbmodels import UserCreatedPuzzles, PuzzleHintsMapTable
+from app.dbmodels import Theme, HintAnswerThemeMap
 from app.util import validate_table, getsalt, createhash
 from app.puzzle.crossword import Crossword
 from functools import wraps
 from os import urandom
+from sqlalchemy import not_, and_
 import random
+import json
 
 register_form = ['username', 'email', 'password', 'confirm']
 login_form = ['username', 'password']
-submit_form = ['hint', 'answer']  # , 'theme']
+# submit_form = ['hint', 'answer']  # , 'theme']
 
 app.secret_key = urandom(24)
 max_xw_size = 25
@@ -156,72 +159,133 @@ def register():
         return render_template('login.html')
 
 
-@app.route('/submit_pair', methods=['GET', 'POST'])
+@app.route('/submit_pairs', methods=['POST', 'GET'])
 @login_required
-def submit_pair():
+def submit_pairs():
+
     if request.method == 'GET':
         return render_template('submit.html')
 
-    if request.method == 'POST':
-        if validate_table(submit_form, request.form):
-            hint = request.form['hint']
-            answer = request.form['answer']
+    post_params = request.form.to_dict()
 
-            if not len(hint):
-                app.logger.warning("hint is empty")
-                message = message_hint_empty
-                app.logger.error(message)
-                return render_template('index.html', message=message)
+    print("Post Params: " + str(post_params))
 
-            # Check if hint/answer pair already exists
-            # in the database
+    hints = sorted(filter(lambda x: "hint_" in x, post_params))
+    answers = sorted(filter(lambda x: "answer_" in x, post_params))
+    themes = sorted(filter(lambda x: "theme_" in x, post_params))
 
-            pair_exists = HintAnswerPair.query.filter(
-                                            HintAnswerPair.hint == hint,
-                                            HintAnswerPair.answer == answer
-                                                        ).scalar()
-            if not is_valid_answer(answer):
-                app.logger.warning(answer + " is not alphabetical")
-                message = message_nonalpha.format(answer)
-                app.logger.error(message)
-                return render_template(
-                                        'index.html',
-                                        message=message
-                                      )
-            if len(answer) < min_hint_len:
-                message = message_too_short.format(answer, min_hint_len)
-                app.logger.error(message)
-                return render_template(
-                                        'index.html',
-                                        message=message
-                                      )
-            if len(answer) > max_hint_len:
-                message = message_too_long.format(answer,  max_hint_len)
-                app.logger.error(message)
-                return render_template(
-                                        'index.html',
-                                        message=message
-                                      )
-            if pair_exists is None:
-                newPair = HintAnswerPair(
-                                         answer, hint,
-                                         session['uid']
-                                        )
-                db.session.add(newPair)
+    if len(hints) != len(answers) or len(hints) == 0:
+        message = "Error: Invalid Request Arguments."
+        return render_template('index.html', message=message)
+
+    bad_pairs = list(filter(lambda x: x[0].split("_")[1] != x[1].split("_")[1],
+                            zip(hints, answers)))
+
+    if len(bad_pairs) > 0:
+        message = "Error: Invalid Request Arguments."
+        return render_template('index.html', message=message)
+
+    report_template = """
+        Successful Submissions {}\n
+        Errored Submissions:\n{}
+    """
+
+    successes = 0
+
+    failures = []
+
+    for hint_key, answer_key in zip(hints, answers):
+        hint = request.form[hint_key]
+        answer = request.form[answer_key].upper()
+
+        if len(answer) < min_hint_len:
+            message = message_too_short.format(answer, min_hint_len)
+            app.logger.error(message)
+            return render_template(
+                                    'index.html',
+                                    message=message
+                                  )
+
+        if len(answer) > max_hint_len:
+            message = message_too_long.format(answer, max_hint_len)
+            app.logger.error(message)
+            return render_template(
+                                    'index.html',
+                                    message=message
+                                  )
+
+        if not is_valid_answer(answer):
+            message = message_nonalpha.format(answer)
+            app.logger.error(message)
+            return render_template(
+                                    'index.html',
+                                    message=message
+                                  )
+
+        if hint == '' or answer == '':
+            message = "Error: Invalid Request Arguments."
+            return render_template('index.html', message=message)
+
+        pair_themes = list(filter(lambda x:
+                                  x.split("_")[1] == hint_key.split("_")[1],
+                                  themes
+                                  )
+                           )
+
+        pair_themes = list(map(lambda x: request.form[x], pair_themes))
+
+        # Unique the themes
+        pair_themes = list(set(pair_themes))
+
+        # print( "Pair Themes: " + str(pair_themes))
+
+        pair_exists = HintAnswerPair.query.filter(
+                                HintAnswerPair.hint == hint,
+                                HintAnswerPair.answer == answer
+                                                  ).scalar()
+
+        if pair_exists is None:
+
+            # Create the pair
+            newPair = HintAnswerPair(
+                                    answer, hint,
+                                    session['uid']
+                                    )
+            db.session.add(newPair)
+            db.session.commit()
+
+            for theme in pair_themes:
+
+                texists = Theme.query.filter_by(theme=theme).first()
+
+                if texists:
+                    tid = texists.tid
+                else:
+
+                    newTheme = Theme(theme)
+                    db.session.add(newTheme)
+                    db.session.commit()
+
+                    tid = newTheme.tid
+
+                new_hamap = HintAnswerThemeMap(newPair.haid, tid)
+                db.session.add(new_hamap)
                 db.session.commit()
-                return render_template(
-                                        'index.html',
-                                        message='Submission successful'
-                                      )
-            else:
-                message = "Error: Hint/Answer pair already exists."
-                app.logger.error(message)
-                return render_template(
-                                        'index.html',
-                                        message=message
-                                      )
 
-    return redirect(url_for('login'))
+            successes += 1
+        else:
+
+            # For now silently ignore
+            failures.append("Hint " + str(hint) + " : Answer "
+                            + str(answer) + " pair exists")
+
+    filled_template = report_template.format(str(successes),
+                                             "\n\n".join(failures))
+
+    return render_template(
+                            'index.html',
+                            report=filled_template
+                           )
 
 
 @app.route("/browse_puzzles/", defaults={"page": 1})
@@ -229,7 +293,15 @@ def submit_pair():
            methods=['GET', 'POST'])
 @login_required
 def browse_puzzles(page):
-    query = CrosswordPuzzle.query
+    query = CrosswordPuzzle.query.outerjoin(User).\
+                     filter(User.uid == CrosswordPuzzle.creator).\
+                     add_columns(User.uname,
+                                 CrosswordPuzzle.num_hints,
+                                 CrosswordPuzzle.num_cells_down,
+                                 CrosswordPuzzle.num_cells_across,
+                                 CrosswordPuzzle.title,
+                                 CrosswordPuzzle.creator)
+
     paginated = query.paginate(page, 12)
     # http://flask-sqlalchemy.pocoo.org/2.1/api/#flask.ext.sqlalchemy.Pagination
     # https://www.reddit.com/r/flask/comments/3nsfr3/afflasksqlalchemy_pagination/
@@ -241,12 +313,205 @@ def browse_puzzles(page):
         return render_template('browse_puzzles.html', paginated=paginated)
 
 
+@app.route("/themes", methods=['GET'])
+@login_required
+def themes():
+
+    num_themes = int(request.args.get('num_themes', 0))
+
+    if num_themes <= 0:
+        return json.dumps({})
+
+    # Prefix from the keyup even in the theme field
+    prefix = request.args.get('prefix', "")
+
+    if prefix != "":
+        themes = Theme.query.filter(Theme.theme.like(prefix + "%")).all()
+    else:
+        themes = Theme.query.all()
+
+    tdict = {}
+
+    if len(themes) < num_themes:
+        tdict = {
+                    "themes": list(map(lambda x: x.theme, themes))
+                }
+    else:
+        ts = list(map(lambda x: x.theme, themes))
+
+        # Chose a num_themes random entries from the themes
+        ts = random.sample(ts, num_themes)
+
+        tdict = {
+                    "themes": ts
+                }
+
+    return json.dumps(tdict)
+
+
+@app.route("/suggests", methods=['POST'])
+@login_required
+def suggests():
+
+    post_params = request.form.to_dict()
+
+    num_suggests = 0
+    if 'num_suggests' in post_params:
+        num_suggests = int(post_params['num_suggests'])
+
+    if num_suggests == 0:
+        return json.dumps({})
+
+    theme = ''
+    if 'theme' in post_params:
+        theme = post_params['theme']
+
+    hints = []
+    if 'hints' in post_params:
+        hints = json.loads(post_params['hints'])
+
+    answers = []
+    if 'answers' in post_params:
+        answers = json.loads(post_params['answers'])
+
+    if theme != '':
+        # Check if theme exists otherwise just return random
+        # suggestions
+        texists = Theme.query.filter_by(theme=theme).first()
+
+        if not texists:
+            return json.dumps({})
+
+        tid = texists.tid
+
+        # Get num suggests Hint/Answer pairs that match
+        # the theme
+        ids = set(map(lambda x: x[0],
+                      HintAnswerThemeMap.query.with_entities(
+                      HintAnswerThemeMap.haid).
+                      filter_by(theme=tid)
+                      )
+                  )
+
+        if hints != [] and answers != []:
+
+            # Filter out pairs that are already selected to be
+            # included in the puzzle
+            sids = set(map(lambda x: x.haid,
+                           HintAnswerPair.query.
+                           filter(
+                                  and_(
+                                       not_(HintAnswerPair.hint.in_(hints)),
+                                       not_(HintAnswerPair.answer.in_(answers))
+                                       )
+                                  )
+                           )
+                       )
+
+            ids = ids.intersection(sids)
+
+        if len(ids) >= num_suggests:
+            samples = random.sample(ids, num_suggests)
+        else:
+            samples = ids
+    else:
+        # Could also add another get parameter to ensure that we do
+        # not return hints we have already suggested
+
+        ids = set(map(lambda x: x[0],
+                      HintAnswerPair.query.with_entities(
+                      HintAnswerPair.haid).all()
+                      )
+                  )
+
+        if hints != [] and answers != []:
+
+            # Filter out pairs that are already selected to be
+            # included in the puzzle
+            sids = set(map(lambda x: x.haid,
+                           HintAnswerPair.query.
+                           filter(
+                                  and_(
+                                       not_(HintAnswerPair.hint.in_(hints)),
+                                       not_(HintAnswerPair.answer.in_(answers))
+                                       )
+                                  )
+                           )
+                       )
+
+            ids = ids.intersection(sids)
+
+        if len(ids) >= num_suggests:
+            samples = random.sample(ids, num_suggests)
+        else:
+            samples = ids
+
+    pairs = HintAnswerPair.query.filter(HintAnswerPair.haid.in_(samples))
+
+    suggestions = []
+
+    for pair in pairs:
+
+        username = User.query.filter_by(uid=pair.author).first().uname
+
+        suggestions.append(
+            {
+                "hint": pair.hint,
+                "answer": pair.answer,
+                "author": username,
+            }
+        )
+
+    return json.dumps(suggestions)
+
+
 @app.route("/create_puzzle", methods=['GET', 'POST'])
 @login_required
 def create_puzzle():
 
     if request.method == 'GET':
-        return render_template('create_puzzle.html')
+
+        # Initialize suggestions with 6 Hint/Answer pairs
+        # randomly chosen from the Hint/Answer pair table
+
+        ids = set(map(lambda x: x[0],
+                      HintAnswerPair.query.with_entities(
+                      HintAnswerPair.haid).all()
+                      )
+                  )
+
+        if len(ids) >= 6:
+            samples = random.sample(ids, 6)
+        else:
+            samples = ids
+
+        if len(ids) == 0:
+            return render_template(
+                                   'index.html',
+                                   message="No hint/answer pairs to create"
+                                           " puzzle from. Please create them."
+                                  )
+
+        uid = HintAnswerPair.query[0].author
+        username = User.query.filter_by(uid=uid).first().uname
+
+        pairs = HintAnswerPair.query.filter(HintAnswerPair.haid.in_(samples))
+
+        suggestions = []
+
+        for pair in pairs:
+
+            username = User.query.filter_by(uid=pair.author).first().uname
+
+            suggestions.append(
+                {
+                    "hint": pair.hint,
+                    "answer": pair.answer,
+                    "author": username,
+                }
+            )
+
+        return render_template('create_puzzle.html', suggestions=suggestions)
 
     if request.method == 'POST':
         post_params = request.form.to_dict()
@@ -360,7 +625,13 @@ def create_puzzle():
             return render_template('index.html', message=message)
 
         # Create the crossword puzzle
-        puzzle = CrosswordPuzzle(len(pairs), max_xw_size, max_xw_size, title)
+        creator = session['uid']
+
+        puzzle = CrosswordPuzzle(len(pairs),
+                                 max_xw_size,
+                                 max_xw_size,
+                                 title,
+                                 creator)
         db.session.add(puzzle)
         db.session.commit()
 
@@ -424,6 +695,7 @@ def play_puzzle():
         .add_columns(
             HintAnswerPair.hint,
             HintAnswerPair.answer,
+            HintAnswerPair.author,
             PuzzleHintsMapTable.axis,
             PuzzleHintsMapTable.cell_across,
             PuzzleHintsMapTable.cell_down,
@@ -437,8 +709,46 @@ def play_puzzle():
 
     puzzle = CrosswordPuzzle.query.get(selected_id)
 
+    def get_uname(uid):
+        return User.query.filter_by(uid=puzzle.creator).first().uname
+    # lambda uid: User.query.filter_by(uid=puzzle.creator).first().uname
+
+    # creator = User.query.filter_by(uid=puzzle.creator).first()
+    # creator_username = creator.uname
+    creator_username = get_uname(uid=puzzle.creator)
+
+    # authors = User.query.filter_by(uid=puzzle.creator).first()
+    # authors_string = 'ABC';
+    author_uids = [hint.author for hint in raw_hints]
+    author_unames = [get_uname(uid) for uid in author_uids]
+    author_unique_unames = list(set(author_unames))
+
+    # print('Author UIDs')
+    # print(author_uids)
+
+    # print('Author unames')
+    # print(author_unames)
+
+    # print('Unique Authors')
+    # print(author_unique_unames)
+
+    def fmt(x):
+        return ', '.join(x[:-1]) + ', and ' + x[-1]
+
+    # f = lambda x: ', '.join(x[:-1]) + ', and ' + x[-1]
+
+    if 1 == len(author_unique_unames):
+        authors_string = author_unique_unames[0]
+    elif 2 == len(author_unique_unames):
+        authors_string = author_unique_unames[0] + ' and ' + \
+                         author_unique_unames[1]
+    else:
+        authors_string = fmt(author_unique_unames)
+
     puzzleData = {
         'title': puzzle.title,
+        'creator': creator_username,
+        'authors': authors_string,
         'nrows': puzzle.num_cells_down,
         'ncols': puzzle.num_cells_across,
         'hints': [

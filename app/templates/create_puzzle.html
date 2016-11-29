@@ -2,37 +2,91 @@
 {% block mainbody %}
 <div class="container">
     <div class="row">
+        <div class="col-md-6">
+            <h1>Create Puzzle From List Of Hint/Answer Pairs</h1>
+            <div class="control-group" id="fields">
+                <!--<label class="control-label" for="field1">Nice Multiple Form Fields</label>-->
+                <div class="controls"> 
+                    <form role="form" autocomplete="off" id="pair_form" action="/create_puzzle" method="post">
+                        <h2>Enter Puzzle Title</h2>
+                        <div class="form-group">
+                          <label for="name">Puzzle Title:</label>
+                          <input type="text" class="form-control" id="title" name="title" placeholder="Puzzle Title">
+                        </div>
 
-        <h1>Create Puzzle From List Of Hint/Answer Pairs</h1>
-        <div class="control-group" id="fields">
-            <!--<label class="control-label" for="field1">Nice Multiple Form Fields</label>-->
+                        <h2>Select Hints and Answers From Suggestions</h2>
+                        <!--
+                        <br>
+                        <div class="entry input-group col-s-3">
+                            <input class="form-control" name="hint_1" type="text" placeholder="Enter Hint" />
+                            <input class="form-control" name="answer_1" type="text" placeholder="Enter Answer" />
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <input type="submit" name="submit_hints" id="submit_hints" action=tabindex="4" class="form-control btn btn-primary" value="Create Puzzle!">
 
-            <div class="controls"> 
-
-                <form role="form" autocomplete="off" action="/create_puzzle" method="post">
-                     <h2>Enter Puzzle Title</h2>
-                     <div class="form-group">
-                       <label for="name">Puzzle Title:</label>
-                       <input type="text" class="form-control" id="title" name="title" placeholder="Puzzle Title">
-                     </div>
-
-                    <h2>Enter Hints and Answers</h2>
-                    <div class="entry input-group col-xs-3">
-                        <input class="form-control" name="hint_1" type="text" placeholder="Enter Hint" />
-                        <input class="form-control" name="answer_1" type="text" placeholder="Enter Answer" />
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                        <input type="submit" name="submit_hints" id="submit_hints" action=tabindex="4" class="form-control btn btn-primary" value="Create Puzzle!">
-
-
-                        <span class="input-group-btn">
-                            <button class="btn btn-success btn-add" type="button">
-                                <span class="glyphicon glyphicon-plus"></span>
-                            </button>
-                        </span>
+                            <span class="input-group-btn">
+                                <button class="btn btn-success btn-add" type="button">
+                                    <span class="glyphicon glyphicon-plus"></span>
+                                </button>
+                            </span>
+                        </div>-->
+                    </form>
+                    <input type="hidden" name="csrf_grab" id="csrf_grab" value="{{ csrf_token() }}" />
+                    <input type="submit" name="submit_hints" id="submit_hints" action=tabindex="4" class="form-control btn btn-primary" value="Create Puzzle!">
+                    <br>
+                    <small>Press <span class="glyphicon glyphicon-plus gs"></span> to add another Hint/Answer pair to include in the puzzle.</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <h1>Hint/Answer Pair Suggestions</h1>
+            <div class="widget stacked widget-table action-table">
+                <div class="widget-header">
+                    <i class="icon-th-list"></i>
+                    <h3>Theme for suggestions</h3>
+                </div>
+                <div class="ui-widget">
+                    <input type="text" name='theme1' placeholder='Theme' class="form-control theme-input"/>
+                </div>
+                <div class="widget-header">
+                    <i class="icon-th-list"></i>
+                    <h3>Suggestions</h3>
+                </div>
+                <div class="widget-content">
+                    <table class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Hint</th>
+                                <th>Answer</th>
+                                <th>Author</th>
+                                <th class="td-actions"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for suggestion in suggestions %}
+                                <tr>
+                                    <td>{{ suggestion.hint }}</td>
+                                    <td>{{ suggestion.answer }}</td>
+                                    <td>{{ suggestion.author }}</td>
+                                    <td class="td-actions">
+                                        <a href="javascript:;" class="btn btn-small btn-primary btn-add">
+                                            <span class="glyphicon glyphicon-plus"></span>
+                                        </a>
+                                        <a href="javascript:;" class="btn btn-small btn-primary btn-remove">
+                                            <span class="glyphicon glyphicon-minus"></span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <br>
+                    <input type="submit" name="new_suggests" id="new_suggests" class="form-control btn btn-primary" value="Get Different Suggestions!">
+                    <br>
+                    <small>Press <span class="glyphicon glyphicon-plus gs"></span> to add suggested Hint/Answer pair to include in the puzzle.</small>
+                    <br>
+                    <small>Press <span class="glyphicon glyphicon-minus gs"></span> to remove suggested Hint/Answer pair and retrieve new suggestion.</small>
                     </div>
-                </form>
-            <br>
-            <small>Press <span class="glyphicon glyphicon-plus gs"></span> to add another Hint/Answer pair to include in the puzzle.</small>
+                </div>
             </div>
         </div>
     </div>

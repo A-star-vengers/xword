@@ -8,6 +8,21 @@ from app.dbmodels import CrosswordPuzzle
 
 import flask_wtf
 
+def register_and_login(x, username):
+    # password and email are pretty unused at the moment
+     response = x.client.post('/register', data=dict(
+                        username=username,
+                        email='test@gmail.com',
+                        password='test',
+                        confirm='test',
+     ), follow_redirects=True)
+
+     response = x.client.post('/login', data=dict(
+                        username=username,
+                        password='test'
+     ), follow_redirects=True)
+
+
 
 class AppTest(TestCase):
 
@@ -29,22 +44,36 @@ class AppTest(TestCase):
 
 class LoggedInAppTest(AppTest):
 
+    def setUp(self):
+        super(LoggedInAppTest, self).setUp()
+        register_and_login(self, 'test')
+#        response = self.client.post('/register', data=dict(
+#                        username='test',
+#                        email='test@gmail.com',
+#                        password='test',
+#                        confirm='test',
+#        ), follow_redirects=True)
+#
+#        response = self.client.post('/login', data=dict(
+#                        username='test',
+#                        password='test'
+#        ), follow_redirects=True)
+
+class LoggedInAppTestWithFilledQuestionDb(LoggedInAppTest):
 
     def setUp(self):
+        super(LoggedInAppTestWithFilledQuestionDb, self).setUp()
 
-        super(LoggedInAppTest, self).setUp()
+        response = self.client.post('/create_puzzle', data=dict(
+                title="Geography Questions",
+                hint_1="The movement of people from one place to another ",
+                answer_1="migration",
+                hint_2="The number of deaths each year per 1,000 people ",
+                answer_2="deathrate",
+                hint_3="Owners and workers who make products ",
+                answer_3="producers",
+                    ), follow_redirects=True)
 
-        response = self.client.post('/register', data=dict(
-                        username='test',
-                        email='test@gmail.com',
-                        password='test',
-                        confirm='test',
-        ), follow_redirects=True)
-
-        response = self.client.post('/login', data=dict(
-                        username='test',
-                        password='test'
-        ), follow_redirects=True)
 
 
 class LoginTest(AppTest):
@@ -214,6 +243,7 @@ class RegisterAndLoginTest(AppTest):
         assert 'Login successful' in response.data.decode()
 
 
+"""
 class SubmitHintAnswerPairTest(LoggedInAppTest):
     expected_ascii_error = b'must only contain the letters A to Z'
     expected_length_error = b'must not be longer than'
@@ -272,6 +302,71 @@ class SubmitHintAnswerPairTest(LoggedInAppTest):
         response = self.client.post('/submit_pair', data=dict(
             hint="A very long answer",
             answer="ThisIsAVeryLongAnswerThatMostCertainlyShouldBeRejectedByTheApplication"
+        ), follow_redirects=True)
+
+        self.assertIn(self.expected_length_error, response.data)
+"""
+
+def SubmitPairsTest(LoggedInAppTest):
+
+    expected_ascii_error = b'must only contain the letters A to Z'
+    expected_length_error = b'must not be longer than'
+    expected_success = b'Submission successful'
+
+    def test_submit_pair(self):
+
+        response = self.client.post('/submit_pairs', data=dict(
+                        hint_0="You took these in school.",
+                        answer_0="exams"
+        ), follow_redirects=True)
+
+        self.assertIn(self.expected_success, response.data)
+
+    def test_submit_quote(self):
+        response = self.client.post('/submit_pairs', data=dict(
+            hint_0="Conan ___, TBS late night show host",
+            answer_0="o'brien"
+        ), follow_redirects=True)
+
+        self.assertIn(self.expected_ascii_error, response.data)
+
+    def test_submit_empty(self):
+        response = self.client.post('/submit_pairs', data=dict(
+            hint_0="Empty answer",
+            answer_0=""
+        ), follow_redirects=True)
+
+        self.assertIn(self.expected_ascii_error, response.data)
+
+    def test_submit_numbers(self):
+        response = self.client.post('/submit_pairs', data=dict(
+            hint_0="The answer to life, the universe and everything",
+            answer_0="42"
+        ), follow_redirects=True)
+
+        self.assertIn(self.expected_ascii_error, response.data)
+
+    def test_submit_dash(self):
+        response = self.client.post('/submit_pairs', data=dict(
+            hint_0="The answer to life, the universe and everything",
+            answer_0="Forty-Two"
+        ), follow_redirects=True)
+
+        self.assertIn(self.expected_ascii_error, response.data)
+
+
+    def test_submit_spaces(self):
+        response = self.client.post('/submit_pairs', data=dict(
+            hint_0="The Gettysburg Address",
+            answer_0="Four score and seven years ago our fathers brought forth, on this continent"
+        ), follow_redirects=True)
+
+        self.assertIn(self.expected_ascii_error, response.data)
+
+    def test_submit_long(self):
+        response = self.client.post('/submit_pairs', data=dict(
+            hint_0="A very long answer",
+            answer_0="ThisIsAVeryLongAnswerThatMostCertainlyShouldBeRejectedByTheApplication"
         ), follow_redirects=True)
 
         self.assertIn(self.expected_length_error, response.data)
@@ -445,9 +540,10 @@ class BrowsePuzzleTest(LoggedInAppTest):
     def fill_fake_puzzle_db(self):
 
         title = "Puzzle"
+        creator = 1
 
         for x in range(100):
-            puzzle = CrosswordPuzzle(10, 25, 25, title + str(x))
+            puzzle = CrosswordPuzzle(10, 25, 25, title + str(x), creator)
             db.session.add(puzzle)
             db.session.commit()
 
@@ -474,9 +570,9 @@ class JapaneseTest(LoggedInAppTest):
 
     def test_submit_pair(self):
 
-        response = self.client.post('/submit_pair', data=dict(
-                        hint="Japanese hint",
-                        answer="的場"
+        response = self.client.post('/submit_pairs', data=dict(
+                        hint_0="Japanese hint",
+                        answer_0="的場"
         ), follow_redirects=True)
 
         assert "only contain the letters A to Z" in response.data.decode()
@@ -489,3 +585,22 @@ class AboutTest(AppTest):
         self.assertIn(b'xword is a social crossword web application that will challenge players', response.data)
 
 
+class PuzzleCreatorRenderTest(LoggedInAppTestWithFilledQuestionDb):
+    def test_puzzle_creator_renders(self):
+        response = self.client.get('/play_puzzle', follow_redirects=True)
+
+        self.assertIn(b'"creator": "test", "', response.data)
+
+# 
+# class QuestionAuthorsRenderTest(LoggedInAppTestWithFilledQuestionDb):
+#     def test_quastion_authors_renders(self):
+#         response = self.client.get('/logout', follow_redirects=True)
+#         register_and_login(self, 'test2')
+#         response = self.client.post('/submit_pair', data=dict(
+#                         hint="Another hint",
+#                         answer="AnotherAnswer"
+#         ), follow_redirects=True)
+# 
+#         response = self.client.get('/play_puzzle', follow_redirects=True)
+#         # self.assertIn(b'With answers authored by test and test2', response.data)
+#         self.assertIn(b'With answers authored by test and test2', response.data)

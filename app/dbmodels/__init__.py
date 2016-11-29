@@ -46,6 +46,22 @@ class Theme(db.Model):
     def __init__(self, theme):
         self.theme = theme
 
+class HintAnswerThemeMap(db.Model):
+    """Class to represent the relationship between a hint/answer pair
+       and its corresponding theme. This table can be used to query
+       for suggestions of hint/answer pairs with similar themes.
+    """
+    __tablename__ = "theme_map"
+    __table_args__ = {'sqlite_autoincrement' : True}
+
+    tmap_id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
+    haid = db.Column(db.Integer, db.ForeignKey("pairs.haid"), nullable=False)
+    theme = db.Column(db.Integer, db.ForeignKey("theme.tid"))
+
+    def __init__(self, haid, theme):
+        self.haid = haid
+        self.theme = theme
+
 class HintAnswerPair(db.Model):
     """Class to represent the Hint/Answer pairs. These pairs are used
        in the construction of new crossword puzzles"""
@@ -55,19 +71,12 @@ class HintAnswerPair(db.Model):
     haid = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
     answer = db.Column(db.String(32), unique=False)
     hint = db.Column(db.String(100), unique=False)
-    #The source can be a username or a website, one of which should be NULL since it only makes sense for the 
-    #hint/answer pair to come from one source (user or third party source)
-    #Could probably have these just point to the IDs into the word_source or the user table
-    #source = db.Column(db.Integer, db.ForeignKey("xword_source.xid"), nullable=True)
     author = db.Column(db.Integer, db.ForeignKey("user.uid"), nullable=True)
-    #Optional theme to assign to hint/answer pair, could also point to the theme id rather than the string itself
-    #theme = db.Column(db.Integer, db.ForeignKey("theme.tid"), nullable=True)
 
-    def __init__(self, answer, hint, author):#, theme):
+    def __init__(self, answer, hint, author):
         self.answer = answer
         self.hint = hint
         self.author = author
-        #self.theme = theme
 
 class PuzzleHintsMapTable(db.Model):
     """Class to represent the container relationship between the crossword puzzle and a list
@@ -160,9 +169,11 @@ class CrosswordPuzzle(db.Model):
     #Number of cells horizontally in the puzzle
     num_cells_across = db.Column(db.Integer)
     title = db.Column(db.String(32), unique=False)
+    creator = db.Column(db.Integer, db.ForeignKey("user.uid"), nullable=True)
 
-    def __init__(self, num_hints, num_cells_down, num_cells_across, title):
+    def __init__(self, num_hints, num_cells_down, num_cells_across, title, creator):
         self.num_hints = num_hints
         self.num_cells_down = num_cells_down
         self.num_cells_across = num_cells_across
         self.title = title
+        self.creator = creator
