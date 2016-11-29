@@ -543,7 +543,7 @@ class BrowsePuzzleTest(LoggedInAppTest):
         creator = 1
 
         for x in range(100):
-            puzzle = CrosswordPuzzle(10, 25, 25, title + str(x), title)
+            puzzle = CrosswordPuzzle(10, 25, 25, title + str(x), creator)
             db.session.add(puzzle)
             db.session.commit()
 
