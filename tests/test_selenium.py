@@ -57,8 +57,8 @@ class LoggedInSeleniumTest(unittest.TestCase):
         self.password = "test_password"
         self.username = "test_username"
 
-        register(self.driver, self.url, self.email, self.username, self.password)
-        login(self.driver, self.url, self.username, self.password)
+        # register(self.driver, self.url, self.email, self.username, self.password)
+        # login(self.driver, self.url, self.username, self.password)
 
 
     def tearDown(self):
