@@ -19,11 +19,47 @@ class PageTest(unittest.TestCase):
     def test_homepage(self):
         driver = self.driver
         driver.get(self.url)
-
         self.assertIn("Xword", driver.title)
-#        self.assertTrue(driver.getTitle(),
-#            "Can't find a title on the page"
-#        )
+
+class LoggedInPageTest(unittest.TestCase):
+
+    def setUp(self):
+        self.driver = webdriver.PhantomJS()
+        self.url = site_url 
+        driver.get(self.url)
+# from selenium import webdriver
+# from selenium.webdriver.common.by import By
+# 
+# site_url = 'http://127.0.0.1:5000'
+# 
+# # driver = webdriver.PhantomJS()
+# driver = webdriver.Chrome() 
+# driver.get(site_url + '/login')
+# 
+# element = driver.find_element_by_id("register-form-link")
+# element.click()
+# 
+# 
+# username = driver.find_element_by_css_selector("html body div.container div.row div.col-md-6.col-md-offset-3 div.panel.panel-login div.panel-body div.row div.col-lg-12 form#register-form div.form-group input#username.form-control")
+# 
+# username.send_keys("test")
+# 
+# email = driver.find_element_by_css_selector("html body div.container div.row div.col-md-6.col-md-offset-3 div.panel.panel-login div.panel-body div.row div.col-lg-12 form#register-form div.form-group input#email.form-control")
+# email.send_keys("test@test.com")
+# 
+# 
+# password = driver.find_element_by_css_selector("html body div.container div.row div.col-md-6.col-md-offset-3 div.panel.panel-login div.panel-body div.row div.col-lg-12 form#register-form div.form-group input#password.form-control")
+# 
+# password.send_keys("test")
+# 
+# 
+# confirm = driver.find_element_by_css_selector("html body div.container div.row div.col-md-6.col-md-offset-3 div.panel.panel-login div.panel-body div.row div.col-lg-12 form#register-form div.form-group input#confirm.form-control")
+# 
+# confirm.send_keys("test") 
+# 
+# 
+# driver.find_element_by_xpath("//*[@id=\"register-submit\"]").click() 
+
 
  # # Generally I found the following might be useful for verifying the page:
  # driver.current_url
@@ -39,23 +75,11 @@ class PageTest(unittest.TestCase):
  # 
 
 
-#    def test_homepage_click(self):
-#        driver = self.driver
-#        driver.get(self.url)
-#
-#        # Sets timeout for wait which we will use after the click
-#        wait = ui.WebDriverWait(driver, 2)
-#
-#        title = driver.find_element_by_css_selector('.title a')
-#
-#        title.click()
-#
-#        # Waits until the url changes to '/hello' or till a timeout
-#        wait.until(lambda driver: driver.current_url.endswith('/hello'),
-#                   "Click Title No Work")
 
     def tearDown(self):
         self.driver.close()
 
 if __name__ == "__main__":
     unittest.main()
+
+

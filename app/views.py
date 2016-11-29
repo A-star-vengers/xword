@@ -293,7 +293,15 @@ def submit_pairs():
            methods=['GET', 'POST'])
 @login_required
 def browse_puzzles(page):
-    query = CrosswordPuzzle.query
+    query = CrosswordPuzzle.query.outerjoin(User).\
+                     filter(User.uid == CrosswordPuzzle.creator).\
+                     add_columns(User.uname,
+                                 CrosswordPuzzle.num_hints,
+                                 CrosswordPuzzle.num_cells_down,
+                                 CrosswordPuzzle.num_cells_across,
+                                 CrosswordPuzzle.title,
+                                 CrosswordPuzzle.creator)
+
     paginated = query.paginate(page, 12)
     # http://flask-sqlalchemy.pocoo.org/2.1/api/#flask.ext.sqlalchemy.Pagination
     # https://www.reddit.com/r/flask/comments/3nsfr3/afflasksqlalchemy_pagination/
@@ -619,7 +627,11 @@ def create_puzzle():
         # Create the crossword puzzle
         creator = session['uid']
 
-        puzzle = CrosswordPuzzle(len(pairs), max_xw_size, max_xw_size, title, creator)
+        puzzle = CrosswordPuzzle(len(pairs),
+                                 max_xw_size,
+                                 max_xw_size,
+                                 title,
+                                 creator)
         db.session.add(puzzle)
         db.session.commit()
 
@@ -697,36 +709,41 @@ def play_puzzle():
 
     puzzle = CrosswordPuzzle.query.get(selected_id)
 
-    get_uname = lambda uid: User.query.filter_by(uid=puzzle.creator).first().uname
+    def get_uname(uid):
+        return User.query.filter_by(uid=puzzle.creator).first().uname
+    # lambda uid: User.query.filter_by(uid=puzzle.creator).first().uname
 
     # creator = User.query.filter_by(uid=puzzle.creator).first()
     # creator_username = creator.uname
-    creator_username = get_uname (uid=puzzle.creator)
+    creator_username = get_uname(uid=puzzle.creator)
 
-    authors = User.query.filter_by(uid=puzzle.creator).first()
-    authors_string = 'ABC';
+    # authors = User.query.filter_by(uid=puzzle.creator).first()
+    # authors_string = 'ABC';
     author_uids = [hint.author for hint in raw_hints]
     author_unames = [get_uname(uid) for uid in author_uids]
     author_unique_unames = list(set(author_unames))
 
-    print('Author UIDs')
-    print(author_uids)
+    # print('Author UIDs')
+    # print(author_uids)
 
-    print('Author unames')
-    print(author_unames)
+    # print('Author unames')
+    # print(author_unames)
 
-    print('Unique Authors')
-    print(author_unique_unames)
+    # print('Unique Authors')
+    # print(author_unique_unames)
 
-    f = lambda x: ', '.join(x[:-1]) + ', and ' + x[-1]
+    def fmt(x):
+        return ', '.join(x[:-1]) + ', and ' + x[-1]
+
+    # f = lambda x: ', '.join(x[:-1]) + ', and ' + x[-1]
 
     if 1 == len(author_unique_unames):
         authors_string = author_unique_unames[0]
     elif 2 == len(author_unique_unames):
-        authors_string = author_unique_unames[0] + ' and ' + author_unique_unames[1]
-    else: 
-        authors_string = f(author_unique_unames)
-
+        authors_string = author_unique_unames[0] + ' and ' + \
+                         author_unique_unames[1]
+    else:
+        authors_string = fmt(author_unique_unames)
 
     puzzleData = {
         'title': puzzle.title,
