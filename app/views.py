@@ -296,6 +296,7 @@ def browse_puzzles(page):
     query = CrosswordPuzzle.query.outerjoin(User).\
                      filter(User.uid == CrosswordPuzzle.creator).\
                      add_columns(User.uname,
+                                 CrosswordPuzzle.cid,
                                  CrosswordPuzzle.num_hints,
                                  CrosswordPuzzle.num_cells_down,
                                  CrosswordPuzzle.num_cells_across,
