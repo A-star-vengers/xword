@@ -31,10 +31,14 @@ def register(driver, url, email, username, password):
     password_elem.send_keys(password)
     confirm_elem.send_keys(password) 
 
+    time.sleep(1)
+
     driver.find_element_by_xpath("//*[@id=\"register-submit\"]").click() 
 
 def login(driver, url, username, password):
     driver.get(url + '/login')
+
+    time.sleep(1)
 
     driver.find_element_by_xpath("//*[@id=\"username\"]").send_keys(username) 
     driver.find_element_by_xpath("//*[@id=\"password\"]").send_keys(password) 
@@ -54,6 +58,7 @@ class LoggedInSeleniumTest(unittest.TestCase):
         self.username = "test_username"
 
         register(self.driver, self.url, self.email, self.username, self.password)
+        time.sleep(1)
         login(self.driver, self.url, self.username, self.password)
 
 
