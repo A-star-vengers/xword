@@ -160,24 +160,32 @@ Vue.component('xwrd-puzzle', {
                 <center><h1> {{ title }}</h1></center>\
                 <center><h4> Created by {{ creator }}</h4></center>\
                 <center><h4> With answers authored by {{ authors }}</h4></center>\
-                <xwrd-grid\
-                  :nrows="nrows"\
-                  :ncols="ncols"\
-                  :grid="grid"\
-                  :hlRow="hlRow"\
-                  :hlCol="hlCol"\
-                  :hlDir="hlDir">\
-                </xwrd-grid>\
-                <xwrd-time :time="timeElapsed"></xwrd-time>\
-                <div><b>Done:</b> {{ done }}</div>\
-                <xwrd-hints direction="across"\
-                  :hints="hints"\
-                  :grid="grid">\
-                </xwrd-hints>\
-                <xwrd-hints direction="down"\
-                  :hints="hints"\
-                  :grid="grid">\
-                </xwrd-hints>\
+                <div class="panels">\
+                    <div class="left-panel">\
+                    </div>\
+                    <div class="center-panel">\
+                        <xwrd-grid\
+                          :nrows="nrows"\
+                          :ncols="ncols"\
+                          :grid="grid"\
+                          :hlRow="hlRow"\
+                          :hlCol="hlCol"\
+                          :hlDir="hlDir">\
+                        </xwrd-grid>\
+                    </div>\
+                    <div class="right-panel">\
+                        <xwrd-time :time="timeElapsed"></xwrd-time>\
+                        <div><b>Done:</b> {{ done }}</div>\
+                        <xwrd-hints direction="across"\
+                          :hints="hints"\
+                          :grid="grid">\
+                        </xwrd-hints>\
+                        <xwrd-hints direction="down"\
+                          :hints="hints"\
+                          :grid="grid">\
+                        </xwrd-hints>\
+                    </div>\
+                </div>\
                </div>',
     data: function() {
         var hints = [];

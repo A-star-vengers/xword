@@ -22,6 +22,25 @@ td {
     /*height: 100%;*/
 }
 
+.panels {
+    display: flex;
+    justify-content: space-around;
+}
+
+.left-panel {
+    flex-basis: 15%;
+    order: 1;
+}
+
+.center-panel {
+    order: 2;
+}
+
+.right-panel {
+    flex-basis: 15%;
+    order: 3;
+}
+
 .hint-num {
     font-size:10pt;
     vertical-align: top;
@@ -31,14 +50,14 @@ td {
 }
 
 .hint-guess {
-	font-size: 52.5556px;
-	line-height: 52.5556px;
+	font-size: 31px;
+	line-height: 31px;
     font-family: 'Walter Turncoat', cursive;
 }
 
 .grid-cell {
-    width: 50px;
-    height: 50px;
+    width: 30px;
+    height: 30px;
     position: relative;
     /*height: 100%;
     width: 100%;*/
@@ -46,8 +65,8 @@ td {
 
 .black {
 	background-color: black;
-	width: 50px;
-	height: 50px;
+	width: 30px;
+	height: 30px;
 }
 
 .black::before {
