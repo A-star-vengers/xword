@@ -757,7 +757,7 @@ class SuggestsAPITest(LoggedInAppTest):
 
         for pair in pairs:
 
-            hpair = HintAnswerPair(pair1["answer"], pair1["hint"], pair1["author"])
+            hpair = HintAnswerPair(pair["answer"], pair["hint"], pair["author"])
             db.session.add(hpair)
             db.session.commit()
 
@@ -796,7 +796,7 @@ class SuggestsAPITest(LoggedInAppTest):
 
         for pair in pairs:
 
-            hpair = HintAnswerPair(pair1["answer"], pair1["hint"], pair1["author"])
+            hpair = HintAnswerPair(pair["answer"], pair["hint"], pair["author"])
             db.session.add(hpair)
             db.session.commit()
 
@@ -838,19 +838,19 @@ class SuggestsAPITest(LoggedInAppTest):
 
         self.assertEqual(len(rdata), 6)
 
-    # def test_with_hints(self):
+    def test_with_hints(self):
 
-    #    self.create_pairs()
+        self.create_pairs()
 
-    #    response = self.client.post('/suggests', data=dict(
-    #                    num_suggests=6,
-    #                    hints=json.dumps(["People who move from one country to another"]),
-    #                    answers=json.dumps(["immigrants"])
-    #                ), follow_redirects=True)
+        response = self.client.post('/suggests', data=dict(
+                        num_suggests=6,
+                        hints=json.dumps(["People who move from one country to another"]),
+                        answers=json.dumps(["immigrants"])
+                    ), follow_redirects=True)
 
-    #    rdata = json.loads(response.data.decode('utf8'))
+        rdata = json.loads(response.data.decode('utf8'))
 
-    #    self.assertEqual(len(rdata), 5)
+        self.assertEqual(len(rdata), 5)
 
     def test_with_theme(self):
 
@@ -865,20 +865,20 @@ class SuggestsAPITest(LoggedInAppTest):
 
         self.assertEqual(len(rdata), 6)
 
-    # def test_with_hint_and_theme(self):
+    def test_with_hint_and_theme(self):
 
-    #    self.create_pairs()
+        self.create_pairs()
 
-    #    response = self.client.post('/suggests', data=dict(
-    #                    num_suggests=6,
-    #                    hints=json.dumps(["People who move from one country to another"]),
-    #                    answers=json.dumps(["immigrants"]),
-    #                    theme="geography"
-    #                ), follow_redirects=True)
+        response = self.client.post('/suggests', data=dict(
+                        num_suggests=6,
+                        hints=json.dumps(["People who move from one country to another"]),
+                        answers=json.dumps(["immigrants"]),
+                        theme="geography"
+                    ), follow_redirects=True)
 
-    #    rdata = json.loads(response.data.decode('utf8'))
+        rdata = json.loads(response.data.decode('utf8'))
 
-    #    self.assertEqual(len(rdata), 5)
+        self.assertEqual(len(rdata), 5)
 
     def test_mixed_themes(self):
 
