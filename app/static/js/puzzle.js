@@ -23,6 +23,7 @@ Vue.component('xwrd-overlay', {
     template: '<div class="overlay" v-bind:class="{\'overlay-active\': done}">\
                 <div class="overlay-content">\
                   <form action="/play_puzzle" method="post">\
+                    <input name="csrf_token" type="hidden" :value="csrfToken">\
                     <input name="time" type="hidden" :value="totalTime" readonly><br>\
                     <h2>You finished the puzzle in {{totalTime}} seconds!</h2><br>\
                     <span>Rating:</span>\
@@ -38,7 +39,7 @@ Vue.component('xwrd-overlay', {
                   </form>\
                 </div>\
                </div>',
-    props: ['totalTime', 'done']
+    props: ['csrfToken', 'totalTime', 'done']
 });
 
 // Component for a single hint
@@ -152,6 +153,7 @@ Vue.component('xwrd-time', {
 Vue.component('xwrd-puzzle', {
     template: '<div>\
                 <xwrd-overlay\
+                  :csrfToken="csrfToken"\
                   :totalTime="totalTime"\
                   :done="done">\
                 </xwrd-overlay>\
@@ -244,7 +246,7 @@ Vue.component('xwrd-puzzle', {
             totalTime: 0,
         }
     },
-    props: ['title', 'creator', 'authors', 'nrows', 'ncols', 'hintsList'],
+    props: ['title', 'creator', 'authors', 'nrows', 'ncols', 'hintsList', 'csrfToken'],
     created: function() {
         bus.$on('key-press', function(event) {
             this.onKeyPress(event);

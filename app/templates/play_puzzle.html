@@ -18,7 +18,8 @@
                      :authors="authors"
                      :nrows="nrows"
                      :ncols="ncols"
-                     :hints-list="hints">
+                     :hints-list="hints"
+                     csrf-token="{{ csrf_token() }}">
         </xwrd-puzzle>
     </div>
 {% endblock %}
