@@ -134,7 +134,7 @@ class FlaskTestCase(unittest.TestCase):
                 hint_0='aaa',
                 answer_0='aaa'), follow_redirects=True)
 
-        self.assertIn(b'Submission Successful', response.data)
+        self.assertIn(b'Successful Submissions', response.data)
 
         # response = tester.post('/submit_pairs', data=dict(
         #        hint_0='aaa',
