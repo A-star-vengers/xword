@@ -22,7 +22,7 @@
                         <div class="ratings">
                             <!--<p class="pull-right">12 reviews</p>-->
                             <p>
-                                Rating: {{ item.rating | round(2) }} &nbsp;&nbsp;&nbsp;
+                                Rating: {{ item.rating | float | round(2) }} &nbsp;&nbsp;&nbsp;
                                 {% for n in range(1,6) %}
                                     {% if n <= item.rating | int %}
                                         <span class="glyphicon glyphicon-star"></span>

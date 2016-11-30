@@ -299,9 +299,11 @@ def browse_puzzles(page):
     query = (
         CrosswordPuzzle.query
                        .outerjoin(User, User.uid == CrosswordPuzzle.creator)
-                       .outerjoin(UserPuzzleRatings, UserPuzzleRatings.cid == CrosswordPuzzle.cid)
+                       .outerjoin(UserPuzzleRatings,
+                                  UserPuzzleRatings.cid == CrosswordPuzzle.cid)
                        .group_by(CrosswordPuzzle.cid)
-                       .with_entities(func.avg(UserPuzzleRatings.rating).label('rating'))
+                       .with_entities(func.avg(UserPuzzleRatings.rating)
+                                      .label('rating'))
                        .add_columns(User.uname,
                                     CrosswordPuzzle.cid,
                                     CrosswordPuzzle.num_hints,
@@ -719,7 +721,8 @@ def play_puzzle():
         selected_id = request.args.get('puzzle_id', random_puzzle_id())
     except IndexError:
         return render_template(
-            'play_puzzle.html', message='No puzzles yet!', puzzleData={}, leaderboard=[])
+            'play_puzzle.html', message='No puzzles yet!', puzzleData={},
+            leaderboard=[])
 
     raw_hints = (
         HintAnswerPair.query
@@ -737,7 +740,8 @@ def play_puzzle():
     )
     if not raw_hints:
         return render_template(
-            'play_puzzle.html', message='Puzzle not found!', puzzleData={}, leaderboard=[])
+            'play_puzzle.html', message='Puzzle not found!', puzzleData={},
+            leaderboard=[])
 
     puzzle = CrosswordPuzzle.query.get(selected_id)
 
@@ -811,4 +815,5 @@ def play_puzzle():
                    for entry in raw_leaderboard]
 
     session['puzzle_id'] = selected_id
-    return render_template('play_puzzle.html', puzzleData=puzzleData, leaderboard=leaderboard)
+    return render_template('play_puzzle.html', puzzleData=puzzleData,
+                           leaderboard=leaderboard)
