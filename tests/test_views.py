@@ -776,9 +776,10 @@ class SuggestsAPITest(LoggedInAppTest):
 
         self.create_pairs()
 
+        hint = ["People who move from one country to another"]
         response = self.client.post('/suggests', data=dict(
                         num_suggests=6,
-                        hints=json.dumps(["People who move from one country to another"]),
+                        hints=json.dumps(hint),
                         answers=json.dumps(["immigrants"])
                     ), follow_redirects=True)
 
@@ -843,7 +844,8 @@ class AboutTest(AppTest):
 
     def test_about(self):
         response = self.client.get('/about', follow_redirects=True)
-        self.assertIn(b'xword is a social crossword web application that will challenge players', response.data)
+        msg = b'xword is a social crossword web application that will challenge players'
+        self.assertIn(msg, response.data)
 
 
 class PuzzleCreatorRenderTest(LoggedInAppTestWithFilledQuestionDb):
@@ -851,17 +853,3 @@ class PuzzleCreatorRenderTest(LoggedInAppTestWithFilledQuestionDb):
         response = self.client.get('/play_puzzle', follow_redirects=True)
 
         self.assertIn(b'"creator": "test", "', response.data)
-
-# 
-# class QuestionAuthorsRenderTest(LoggedInAppTestWithFilledQuestionDb):
-#     def test_quastion_authors_renders(self):
-#         response = self.client.get('/logout', follow_redirects=True)
-#         register_and_login(self, 'test2')
-#         response = self.client.post('/submit_pair', data=dict(
-#                         hint="Another hint",
-#                         answer="AnotherAnswer"
-#         ), follow_redirects=True)
-# 
-#         response = self.client.get('/play_puzzle', follow_redirects=True)
-#         # self.assertIn(b'With answers authored by test and test2', response.data)
-#         self.assertIn(b'With answers authored by test and test2', response.data)

@@ -3,8 +3,6 @@ from app import app
 from app.util import validate_table
 from app.db import db, init_db
 
-from flask import render_template
-
 import flask_wtf
 
 from functools import wraps
