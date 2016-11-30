@@ -19,22 +19,24 @@
                         <h4><a href="/play_puzzle?puzzle_id={{ item.cid }}">{{ item.title }}</a></h4>
                         <h4>Created by {{ item.uname }}</a></h4>
                         <p>({{ item.num_cells_down }} x {{ item.num_cells_across }}, {{ item.num_hints }} questions)</p>
+                        <div class="ratings">
+                            <!--<p class="pull-right">12 reviews</p>-->
+                            <p>
+                                Rating: {{ item.rating | float | round(2) }} &nbsp;&nbsp;&nbsp;
+                                {% for n in range(1,6) %}
+                                    {% if n <= item.rating | int %}
+                                        <span class="glyphicon glyphicon-star"></span>
+                                    {% else %}
+                                        <span class="glyphicon glyphicon-star-empty"></span>
+                                    {% endif %}
+                                {% endfor %}
+                                <!--<span class="glyphicon glyphicon-star"></span>
+                                <span class="glyphicon glyphicon-star"></span>
+                                <span class="glyphicon glyphicon-star"></span>
+                                <span class="glyphicon glyphicon-star-empty"></span>-->
+                            </p>
+                        </div>
                     </div>
-                    <!--
-                    Rating and ranking to come
-                    --> 
-                    <!--
-                    <div class="ratings">
-                        <p class="pull-right">12 reviews</p>
-                        <p>
-                            <span class="glyphicon glyphicon-star"></span>
-                            <span class="glyphicon glyphicon-star"></span>
-                            <span class="glyphicon glyphicon-star"></span>
-                            <span class="glyphicon glyphicon-star"></span>
-                            <span class="glyphicon glyphicon-star-empty"></span>
-                        </p>
-                    </div>
-                    -->
                 </div>
             </div>
         {% endfor %}

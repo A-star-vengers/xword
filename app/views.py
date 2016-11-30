@@ -5,11 +5,13 @@ from app.db import db
 from app.dbmodels import User, HintAnswerPair, CrosswordPuzzle
 from app.dbmodels import UserCreatedPuzzles, PuzzleHintsMapTable
 from app.dbmodels import Theme, HintAnswerThemeMap
+from app.dbmodels import UserPuzzleRatings, UserPuzzleTimes
 from app.util import validate_table, getsalt, createhash
 from app.puzzle.crossword import Crossword
 from functools import wraps
 from os import urandom
 from sqlalchemy import not_, and_
+from sqlalchemy.sql import func
 import random
 import json
 
@@ -293,15 +295,23 @@ def submit_pairs():
            methods=['GET', 'POST'])
 @login_required
 def browse_puzzles(page):
-    query = CrosswordPuzzle.query.outerjoin(User).\
-                     filter(User.uid == CrosswordPuzzle.creator).\
-                     add_columns(User.uname,
-                                 CrosswordPuzzle.cid,
-                                 CrosswordPuzzle.num_hints,
-                                 CrosswordPuzzle.num_cells_down,
-                                 CrosswordPuzzle.num_cells_across,
-                                 CrosswordPuzzle.title,
-                                 CrosswordPuzzle.creator)
+
+    query = (
+        CrosswordPuzzle.query
+                       .outerjoin(User, User.uid == CrosswordPuzzle.creator)
+                       .outerjoin(UserPuzzleRatings,
+                                  UserPuzzleRatings.cid == CrosswordPuzzle.cid)
+                       .group_by(CrosswordPuzzle.cid)
+                       .with_entities(func.avg(UserPuzzleRatings.rating)
+                                      .label('rating'))
+                       .add_columns(User.uname,
+                                    CrosswordPuzzle.cid,
+                                    CrosswordPuzzle.num_hints,
+                                    CrosswordPuzzle.num_cells_down,
+                                    CrosswordPuzzle.num_cells_across,
+                                    CrosswordPuzzle.title,
+                                    CrosswordPuzzle.creator)
+    )
 
     paginated = query.paginate(page, 12)
     # http://flask-sqlalchemy.pocoo.org/2.1/api/#flask.ext.sqlalchemy.Pagination
@@ -681,14 +691,38 @@ def random_puzzle_id():
 @login_required
 def play_puzzle():
     if request.method == 'POST':
-        assert False, request.form
+        puzzle_id = session.get("puzzle_id", None)
+        rating = request.form.get("rating", None)
+        time = request.form.get("time", None)
+
+        if not all((puzzle_id, rating, time)):
+            return render_template(
+                'play_puzzle.html', message='An error occured!', puzzleData={})
+
+        del session['puzzle_id']
+        user_id = session['uid']
+
+        time_exists = UserPuzzleTimes.query.filter(
+            UserPuzzleTimes.cid == puzzle_id,
+            UserPuzzleTimes.uid == user_id
+        ).scalar()
+
+        if time_exists is None:
+            db.session.add(UserPuzzleTimes(puzzle_id, user_id, time))
+        db.session.merge(UserPuzzleRatings(puzzle_id, session['uid'], rating))
+        db.session.commit()
+
+        return render_template(
+            'play_puzzle.html', message='Time and rating submited!',
+            puzzleData={}, leaderboard=[])
 
     # If a puzzle has not been selected, choose one at random
     try:
         selected_id = request.args.get('puzzle_id', random_puzzle_id())
     except IndexError:
         return render_template(
-            'play_puzzle.html', message='No puzzles yet!', puzzleData={})
+            'play_puzzle.html', message='No puzzles yet!', puzzleData={},
+            leaderboard=[])
 
     raw_hints = (
         HintAnswerPair.query
@@ -706,7 +740,8 @@ def play_puzzle():
     )
     if not raw_hints:
         return render_template(
-            'play_puzzle.html', message='Puzzle not found!', puzzleData={})
+            'play_puzzle.html', message='Puzzle not found!', puzzleData={},
+            leaderboard=[])
 
     puzzle = CrosswordPuzzle.query.get(selected_id)
 
@@ -763,4 +798,22 @@ def play_puzzle():
             } for hint in raw_hints
         ]
     }
-    return render_template('play_puzzle.html', puzzleData=puzzleData)
+
+    raw_leaderboard = (
+        UserPuzzleTimes.query
+        .join(User)
+        .add_columns(
+            User.uname,
+            UserPuzzleTimes.time
+        )
+        .filter(UserPuzzleTimes.cid == selected_id)
+        .order_by(UserPuzzleTimes.time)
+        .limit(10)
+    )
+
+    leaderboard = [{'username': entry.uname, 'time': entry.time}
+                   for entry in raw_leaderboard]
+
+    session['puzzle_id'] = selected_id
+    return render_template('play_puzzle.html', puzzleData=puzzleData,
+                           leaderboard=leaderboard)
