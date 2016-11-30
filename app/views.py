@@ -11,6 +11,7 @@ from app.puzzle.crossword import Crossword
 from functools import wraps
 from os import urandom
 from sqlalchemy import not_, and_
+from sqlalchemy.sql import func
 import random
 import json
 
@@ -294,15 +295,21 @@ def submit_pairs():
            methods=['GET', 'POST'])
 @login_required
 def browse_puzzles(page):
-    query = CrosswordPuzzle.query.outerjoin(User).\
-                     filter(User.uid == CrosswordPuzzle.creator).\
-                     add_columns(User.uname,
-                                 CrosswordPuzzle.cid,
-                                 CrosswordPuzzle.num_hints,
-                                 CrosswordPuzzle.num_cells_down,
-                                 CrosswordPuzzle.num_cells_across,
-                                 CrosswordPuzzle.title,
-                                 CrosswordPuzzle.creator)
+
+    query = (
+        CrosswordPuzzle.query
+                       .outerjoin(User, User.uid == CrosswordPuzzle.creator)
+                       .outerjoin(UserPuzzleRatings, UserPuzzleRatings.cid == CrosswordPuzzle.cid)
+                       .group_by(CrosswordPuzzle.cid)
+                       .with_entities(func.avg(UserPuzzleRatings.rating).label('rating'))
+                       .add_columns(User.uname,
+                                    CrosswordPuzzle.cid,
+                                    CrosswordPuzzle.num_hints,
+                                    CrosswordPuzzle.num_cells_down,
+                                    CrosswordPuzzle.num_cells_across,
+                                    CrosswordPuzzle.title,
+                                    CrosswordPuzzle.creator)
+    )
 
     paginated = query.paginate(page, 12)
     # http://flask-sqlalchemy.pocoo.org/2.1/api/#flask.ext.sqlalchemy.Pagination
