@@ -1,29 +1,29 @@
 #!venv3/bin/python
 
-import unittest
 from flask_testing import TestCase
 from app import app
 from app.db import db, init_db
-from app.dbmodels import CrosswordPuzzle, Theme, HintAnswerPair, HintAnswerThemeMap
+from app.dbmodels import CrosswordPuzzle, Theme
+from app.dbmodels import HintAnswerPair, HintAnswerThemeMap
 
 import json
 
 import flask_wtf
 
+
 def register_and_login(x, username):
     # password and email are pretty unused at the moment
-     response = x.client.post('/register', data=dict(
+    x.client.post('/register', data=dict(
                         username=username,
                         email='test@gmail.com',
                         password='test',
                         confirm='test',
-     ), follow_redirects=True)
+    ), follow_redirects=True)
 
-     response = x.client.post('/login', data=dict(
+    x.client.post('/login', data=dict(
                         username=username,
                         password='test'
-     ), follow_redirects=True)
-
+    ), follow_redirects=True)
 
 
 class AppTest(TestCase):
@@ -61,12 +61,13 @@ class LoggedInAppTest(AppTest):
 #                        password='test'
 #        ), follow_redirects=True)
 
+
 class LoggedInAppTestWithFilledQuestionDb(LoggedInAppTest):
 
     def setUp(self):
         super(LoggedInAppTestWithFilledQuestionDb, self).setUp()
 
-        response = self.client.post('/create_puzzle', data=dict(
+        self.client.post('/create_puzzle', data=dict(
                 title="Geography Questions",
                 hint_1="The movement of people from one place to another ",
                 answer_1="migration",
@@ -75,7 +76,6 @@ class LoggedInAppTestWithFilledQuestionDb(LoggedInAppTest):
                 hint_3="Owners and workers who make products ",
                 answer_3="producers",
                     ), follow_redirects=True)
-
 
 
 class LoginTest(AppTest):
@@ -130,7 +130,9 @@ class LoginTest(AppTest):
         self.assertIn(b'<form id="login-form" action="/login"', response.data)
 
     def test_non_existent_user(self):
-        response = self.client.post('/login', data=dict(username='idontexist', password='idontexist'),
+        response = self.client.post('/login',
+                                    data=dict(username='idontexist',
+                                              password='idontexist'),
                                     follow_redirects=True)
         self.assertIn(b'<form id="login-form" action="/login"', response.data)
 
@@ -244,6 +246,7 @@ class RegisterAndLoginTest(AppTest):
 
         assert 'Login successful' in response.data.decode()
 
+
 class SubmitPairsTest(LoggedInAppTest):
 
     expected_ascii_error = b'must only contain the letters A to Z'
@@ -293,7 +296,8 @@ class SubmitPairsTest(LoggedInAppTest):
     def test_submit_spaces(self):
         response = self.client.post('/submit_pairs', data=dict(
             hint_0="The Gettysburg Address",
-            answer_0="Four score and seven years ago our fathers brought forth, on this continent"
+            answer_0="Four score and seven years ago "
+                     "our fathers brought forth, on this continent"
         ), follow_redirects=True)
 
         self.assertIn(b'must not be longer than', response.data)
@@ -301,7 +305,9 @@ class SubmitPairsTest(LoggedInAppTest):
     def test_submit_long(self):
         response = self.client.post('/submit_pairs', data=dict(
             hint_0="A very long answer",
-            answer_0="ThisIsAVeryLongAnswerThatMostCertainlyShouldBeRejectedByTheApplication"
+            answer_0="ThisIsAVeryLongAnswer"
+                     "ThatMostCertainlyShould"
+                     "BeRejectedByTheApplication"
         ), follow_redirects=True)
 
         self.assertIn(self.expected_length_error, response.data)
@@ -324,7 +330,7 @@ class SubmitPairsTest(LoggedInAppTest):
         response = self.client.post('/submit_pairs', data=dict(
             hint_0="Things pushed around a super market",
             answer_0="carts",
-            theme_0 ="groceries",
+            theme_0="groceries",
             hint_1="Afer curfew",
             answer_1="late",
             theme_1="general",
@@ -399,7 +405,7 @@ class CreatePuzzleTest(LoggedInAppTest):
     def test_mismatch_create_puzzle(self):
 
         response = self.client.post('/create_puzzle', data=dict(
-                    title = "Geography Questions",
+                    title="Geography Questions",
                     hint_1="The movement of people from one place to another",
                     hint_2="The number of deaths each year per 1,000 people",
                     answer_2="deathrate",
@@ -409,7 +415,8 @@ class CreatePuzzleTest(LoggedInAppTest):
                     answer_4="constitutionalmonarchy"
                     ), follow_redirects=True)
 
-        self.assertIn(b'Error: amount of hints and answers must match', response.data)
+        msg = b'Error: amount of hints and answers must match'
+        self.assertIn(msg, response.data)
 
     def test_notitle_create_puzzle(self):
 
@@ -420,7 +427,8 @@ class CreatePuzzleTest(LoggedInAppTest):
                     answer_2="deathrate"
                     ), follow_redirects=True)
 
-        self.assertIn(b'Error: Need to provide title for puzzle', response.data)
+        msg = b'Error: Need to provide title for puzzle'
+        self.assertIn(msg, response.data)
 
     def test_emptytitle_create_puzzle(self):
 
@@ -432,7 +440,8 @@ class CreatePuzzleTest(LoggedInAppTest):
                     answer_2="deathrate"
                     ), follow_redirects=True)
 
-        self.assertIn(b'Error: Need to provide title for puzzle', response.data)
+        msg = b'Error: Need to provide title for puzzle'
+        self.assertIn(msg, response.data)
 
     def test_empty_hint_answer_puzzle(self):
 
@@ -456,11 +465,12 @@ class CreatePuzzleTest(LoggedInAppTest):
 
         self.assertIn(message, response.data)
 
+
 class PlayPuzzleTest(LoggedInAppTest):
 
     def create_good_puzzle(self):
 
-        response = self.client.post('/create_puzzle', data=dict(
+        self.client.post('/create_puzzle', data=dict(
                 title="Geography Questions",
                 hint_1="The movement of people from one place to another ",
                 answer_1="migration",
@@ -497,7 +507,6 @@ class PlayPuzzleTest(LoggedInAppTest):
                         "things that have value",
                 answer_14="economy"
                     ), follow_redirects=True)
-
 
     def test_no_puzzle(self):
 
@@ -539,20 +548,22 @@ class BrowsePuzzleTest(LoggedInAppTest):
 
         assert "Next" in response.data.decode()
 
-        response = self.client.get('/browse_puzzles/page/2', follow_redirects=True)
+        url = '/browse_puzzles/page/2'
+        response = self.client.get(url, follow_redirects=True)
 
-        assert "Next" in response.data.decode() and "Prev" in response.data.decode()
+        assert "Next" in response.data.decode() and \
+               "Prev" in response.data.decode()
+
 
 class ThemesAPITest(LoggedInAppTest):
 
     def create_fake_themes(self):
 
-       themes = ["history", "geography", "sports",
-                 "fashion", "television", "animals",
-                 "cars"
-                ]
+        themes = ["history", "geography", "sports",
+                  "fashion", "television", "animals",
+                  "cars"]
 
-       for x in themes:
+        for x in themes:
             newTheme = Theme(x)
             db.session.add(newTheme)
             db.session.commit()
@@ -560,10 +571,10 @@ class ThemesAPITest(LoggedInAppTest):
     def test_empty_themes(self):
 
         response = self.client.get('/themes',
-                                    query_string={
-                                            "num_themes" : 6
+                                   query_string={
+                                            "num_themes": 6
                                                  },
-                                    follow_redirects=True)
+                                   follow_redirects=True)
 
         rdata = json.loads(response.data.decode('utf8'))
 
@@ -576,10 +587,10 @@ class ThemesAPITest(LoggedInAppTest):
         self.create_fake_themes()
 
         response = self.client.get('/themes',
-                                    query_string = {'num_themes' : 6},
-                                    follow_redirects=True)
+                                   query_string={'num_themes': 6},
+                                   follow_redirects=True)
 
-        print( dir(response.data) )
+        print(dir(response.data))
 
         rdata = json.loads(response.data.decode('utf8'))
 
@@ -592,10 +603,10 @@ class ThemesAPITest(LoggedInAppTest):
         self.create_fake_themes()
 
         response = self.client.get('/themes',
-                                    query_string={'num_themes':8},
-                                    follow_redirects=True)
+                                   query_string={'num_themes': 8},
+                                   follow_redirects=True)
 
-        print( dir(response.data) )
+        print(dir(response.data))
 
         rdata = json.loads(str(response.data.decode('utf8')))
 
@@ -608,11 +619,11 @@ class ThemesAPITest(LoggedInAppTest):
         self.create_fake_themes()
 
         response = self.client.get('/themes',
-                                    query_string={
-                                                    'num_themes':6,
-                                                    'prefix':'geo'
-                                                 },
-                                    follow_redirects=True)
+                                   query_string={
+                                                   'num_themes': 6,
+                                                   'prefix': 'geo'
+                                                },
+                                   follow_redirects=True)
 
         rdata = json.loads(response.data.decode('utf8'))
 
@@ -627,13 +638,13 @@ class ThemesAPITest(LoggedInAppTest):
         self.create_fake_themes()
 
         response = self.client.get('/themes',
-                                    query_string={
-                                                    'num_themes':6,
-                                                    'prefix':'ki'
+                                   query_string={
+                                                    'num_themes': 6,
+                                                    'prefix': 'ki'
                                                  },
-                                    follow_redirects=True)
+                                   follow_redirects=True)
 
-        print( dir(response.data) )
+        print(dir(response.data))
 
         rdata = json.loads(response.data.decode('utf8'))
 
@@ -641,57 +652,61 @@ class ThemesAPITest(LoggedInAppTest):
 
         self.assertEqual(rdata['themes'], [])
 
+
 class SuggestsAPITest(LoggedInAppTest):
 
     def create_pairs(self):
 
         pair1 = {
-                    "hint" : "The movement of people from one place to another",
-                    "answer" : "migration",
-                    "theme" : "geography",
-                    "author" : 1
+                    "hint": "The movement of people from one place to another",
+                    "answer": "migration",
+                    "theme": "geography",
+                    "author": 1
                 }
 
         pair2 = {
-                    "hint" : "Owners and workers who make products",
-                    "answer" : "producers",
-                    "theme" : "geography",
-                    "author" : 1
+                    "hint": "Owners and workers who make products",
+                    "answer": "producers",
+                    "theme": "geography",
+                    "author": 1
                 }
 
         pair3 = {
-                    "hint" : "The number of deaths each year per 1,000 people",
-                    "answer" : "deathrate",
-                    "theme" : "geography",
-                    "author" : 1
+                    "hint": "The number of deaths each year per 1,000 people",
+                    "answer": "deathrate",
+                    "theme": "geography",
+                    "author": 1
                 }
 
         pair4 = {
-                    "hint" : "A government in which the king is limited by law",
-                    "answer" : "constitutionalmonarchy",
-                    "theme" : "geography",
-                    "author" : 1
+                    "hint": "A government in which the king is limited by law",
+                    "answer": "constitutionalmonarchy",
+                    "theme": "geography",
+                    "author": 1
                 }
 
         pair5 = {
-                    "hint" : "People who move from one country to another",
-                    "answer" : "immigrants",
-                    "theme" : "geography",
-                    "author" : 1
+                    "hint": "People who move from one country to another",
+                    "answer": "immigrants",
+                    "theme": "geography",
+                    "author": 1
                 }
 
+        hint = "Nations with many industries and advanced technology"
         pair6 = {
-                    "hint" : "Nations with many industries and advanced technology",
-                    "answer" : "developednations",
-                    "theme" : "geography",
-                    "author" : 1
+                    "hint": hint,
+                    "answer": "developednations",
+                    "theme": "geography",
+                    "author": 1
                 }
 
         pairs = [pair1, pair2, pair3, pair4, pair5, pair6]
 
         for pair in pairs:
-
-            hpair = HintAnswerPair(pair["answer"], pair["hint"], pair["author"])
+            answer = pair["answer"]
+            hint = pair["hint"]
+            author = pair["author"]
+            hpair = HintAnswerPair(answer, hint, author)
             db.session.add(hpair)
             db.session.commit()
 
@@ -713,24 +728,26 @@ class SuggestsAPITest(LoggedInAppTest):
     def create_mixed_pairs(self):
 
         pair1 = {
-                    "hint" : "The movement of people from one place to another",
-                    "answer" : "migration",
-                    "theme" : "geographyOne",
-                    "author" : 1
+                    "hint": "The movement of people from one place to another",
+                    "answer": "migration",
+                    "theme": "geographyOne",
+                    "author": 1
                 }
 
         pair2 = {
-                    "hint" : "Owners and workers who make products",
-                    "answer" : "producers",
-                    "theme" : "geographyTwo",
-                    "author" : 1
+                    "hint": "Owners and workers who make products",
+                    "answer": "producers",
+                    "theme": "geographyTwo",
+                    "author": 1
                 }
 
         pairs = [pair1, pair2]
 
         for pair in pairs:
-
-            hpair = HintAnswerPair(pair["answer"], pair["hint"], pair["author"])
+            answer = pair["answer"]
+            hint = pair["hint"]
+            author = pair["author"]
+            hpair = HintAnswerPair(answer, hint, author)
             db.session.add(hpair)
             db.session.commit()
 
@@ -749,12 +766,11 @@ class SuggestsAPITest(LoggedInAppTest):
             db.session.add(new_hamap)
             db.session.commit()
 
-
     def test_no_suggests(self):
 
         response = self.client.post('/suggests', data=dict(
                         num_suggests=0,
-        ), follow_redirects=True)  
+        ), follow_redirects=True)
 
         rdata = json.loads(response.data.decode('utf8'))
 
@@ -804,9 +820,10 @@ class SuggestsAPITest(LoggedInAppTest):
 
         self.create_pairs()
 
+        hint = ["People who move from one country to another"]
         response = self.client.post('/suggests', data=dict(
                         num_suggests=6,
-                        hints=json.dumps(["People who move from one country to another"]),
+                        hints=json.dumps(hint),
                         answers=json.dumps(["immigrants"]),
                         theme="geography"
                     ), follow_redirects=True)
@@ -828,6 +845,7 @@ class SuggestsAPITest(LoggedInAppTest):
 
         self.assertEqual(len(rdata), 1)
 
+
 class JapaneseTest(LoggedInAppTest):
 
     def test_submit_pair(self):
@@ -844,8 +862,9 @@ class AboutTest(AppTest):
 
     def test_about(self):
         response = self.client.get('/about', follow_redirects=True)
-        msg = b'xword is a social crossword web application that will challenge players'
-        self.assertIn(msg, response.data)
+        message = b"xword is a social crossword web" \
+                  + b" application that will challenge players"
+        self.assertIn(message, response.data)
 
 
 class PuzzleCreatorRenderTest(LoggedInAppTestWithFilledQuestionDb):
