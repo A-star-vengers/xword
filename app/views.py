@@ -711,7 +711,7 @@ def play_puzzle():
     puzzle = CrosswordPuzzle.query.get(selected_id)
 
     def get_uname(uid):
-        return User.query.filter_by(uid=puzzle.creator).first().uname
+        return User.query.filter_by(uid=uid).first().uname
     # lambda uid: User.query.filter_by(uid=puzzle.creator).first().uname
 
     # creator = User.query.filter_by(uid=puzzle.creator).first()
