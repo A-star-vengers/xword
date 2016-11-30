@@ -142,8 +142,8 @@ def register():
             if user_exists is None:
                 salt = getsalt()
                 passhash = createhash(salt, password)
-                newUser = User(username, email, salt, passhash)
-                db.session.add(newUser)
+                new_user = User(username, email, salt, passhash)
+                db.session.add(new_user)
                 db.session.commit()
                 return render_template(
                                         'index.html',
@@ -264,11 +264,11 @@ def submit_pairs():
                     tid = texists.tid
                 else:
 
-                    newTheme = Theme(theme)
-                    db.session.add(newTheme)
+                    new_theme = Theme(theme)
+                    db.session.add(new_theme)
                     db.session.commit()
 
-                    tid = newTheme.tid
+                    tid = new_theme.tid
 
                 new_hamap = HintAnswerThemeMap(newPair.haid, tid)
                 db.session.add(new_hamap)
