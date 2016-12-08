@@ -13,17 +13,17 @@ import flask_wtf
 
 def register_and_login(x, username):
     # password and email are pretty unused at the moment
-    x.client.post('/register', data=dict(
-                        username=username,
+     response = x.client.post('/register', data=dict(
+                        username_register=username,
                         email='test@gmail.com',
-                        password='test',
+                        password_register='test',
                         confirm='test',
     ), follow_redirects=True)
 
-    x.client.post('/login', data=dict(
-                        username=username,
-                        password='test'
-    ), follow_redirects=True)
+     response = x.client.post('/login', data=dict(
+                        username_login=username,
+                        password_login='test'
+     ), follow_redirects=True)
 
 
 class AppTest(TestCase):
@@ -49,17 +49,6 @@ class LoggedInAppTest(AppTest):
     def setUp(self):
         super(LoggedInAppTest, self).setUp()
         register_and_login(self, 'test')
-#        response = self.client.post('/register', data=dict(
-#                        username='test',
-#                        email='test@gmail.com',
-#                        password='test',
-#                        confirm='test',
-#        ), follow_redirects=True)
-#
-#        response = self.client.post('/login', data=dict(
-#                        username='test',
-#                        password='test'
-#        ), follow_redirects=True)
 
 
 class LoggedInAppTestWithFilledQuestionDb(LoggedInAppTest):
@@ -83,8 +72,8 @@ class LoginTest(AppTest):
     def test_login(self):
 
         response = self.client.post('/login', data=dict(
-                        username='test',
-                        password='test2'
+                        username_login='test',
+                        password_login='test2'
         ), follow_redirects=True)
 
         assert 'Login successful' not in response.data.decode()
@@ -92,8 +81,8 @@ class LoginTest(AppTest):
     def test_empty_login(self):
 
         response = self.client.post('/login', data=dict(
-                        username='',
-                        password='test2'
+                        username_login='',
+                        password_login='test2'
         ), follow_redirects=True)
 
         text = b'<form id="login-form" action="/login"'
@@ -101,15 +90,15 @@ class LoginTest(AppTest):
         self.assertIn(text, response.data)
 
         response = self.client.post('/login', data=dict(
-                        username='test',
-                        password=''
+                        username_login='test',
+                        password_login=''
         ), follow_redirects=True)
 
         self.assertIn(text, response.data)
 
         response = self.client.post('/login', data=dict(
-                        username='',
-                        password=''
+                        username_login='',
+                        password_login=''
         ), follow_redirects=True)
 
         self.assertIn(text, response.data)
@@ -117,8 +106,8 @@ class LoginTest(AppTest):
     def test_invalid_login(self):
 
         response = self.client.post('/login', data=dict(
-                        username='test',
-                        password='test3'
+                        username_login='test',
+                        password_login='test3'
                     ), follow_redirects=True)
 
         text = b'<form id="login-form" action="/login"'
@@ -130,10 +119,7 @@ class LoginTest(AppTest):
         self.assertIn(b'<form id="login-form" action="/login"', response.data)
 
     def test_non_existent_user(self):
-        response = self.client.post('/login',
-                                    data=dict(username='idontexist',
-                                              password='idontexist'),
-                                    follow_redirects=True)
+        response = self.client.post('/login', data=dict(username_login='idontexist', password_login='idontexist'), follow_redirects=True)
         self.assertIn(b'<form id="login-form" action="/login"', response.data)
 
 
@@ -142,9 +128,9 @@ class RegisterTest(AppTest):
     def test_register(self):
 
         response = self.client.post('/register', data=dict(
-                        username='test',
+                        username_register='test',
                         email='test@gmail.com',
-                        password='test',
+                        password_register='test',
                         confirm='test'
         ), follow_redirects=True)
 
@@ -153,9 +139,9 @@ class RegisterTest(AppTest):
     def test_empty_register(self):
 
         response = self.client.post('/register', data=dict(
-                        username='test',
+                        username_register='test',
                         email='test@gmail.com',
-                        password='test',
+                        password_register='test',
                         confirm=''
                     ), follow_redirects=True)
 
@@ -164,27 +150,27 @@ class RegisterTest(AppTest):
         self.assertIn(text, response.data)
 
         response = self.client.post('/register', data=dict(
-                        username='test',
+                        username_register='test',
                         email='test@gmail.com',
-                        password='',
+                        password_register='',
                         confirm='test'
                     ), follow_redirects=True)
 
         self.assertIn(text, response.data)
 
         response = self.client.post('/register', data=dict(
-                        username='test',
+                        username_register='test',
                         email='',
-                        password='test',
+                        password_register='test',
                         confirm='test'
                     ), follow_redirects=True)
 
         self.assertIn(text, response.data)
 
         response = self.client.post('/register', data=dict(
-                        username='',
+                        username_register='',
                         email='test@gmail.com',
-                        password='test',
+                        password_register='test',
                         confirm='test'
                     ), follow_redirects=True)
 
@@ -193,9 +179,9 @@ class RegisterTest(AppTest):
     def test_invalid_confirm(self):
 
         response = self.client.post('/register', data=dict(
-                        username='test',
+                        username_register='test',
                         email='test@gmail.com',
-                        password='test',
+                        password_register='test',
                         confirm='testing'
                     ), follow_redirects=True)
 
@@ -206,9 +192,9 @@ class RegisterTest(AppTest):
     def test_already_registered(self):
 
         response = self.client.post('/register', data=dict(
-                        username='test',
+                        username_register='test',
                         email='test@gmail.com',
-                        password='test',
+                        password_register='test',
                         confirm='test'
         ), follow_redirects=True)
 
@@ -217,9 +203,9 @@ class RegisterTest(AppTest):
         text = b'Error account already exists'
 
         response = self.client.post('/register', data=dict(
-                        username='test',
+                        username_register='test',
                         email='test@gmail.com',
-                        password='test',
+                        password_register='test',
                         confirm='test'
         ), follow_redirects=True)
 
@@ -231,17 +217,17 @@ class RegisterAndLoginTest(AppTest):
     def test_register_and_login(self):
 
         response = self.client.post('/register', data=dict(
-                        username='test',
+                        username_register='test',
                         email='test@gmail.com',
-                        password='test',
+                        password_register='test',
                         confirm='test'
         ), follow_redirects=True)
 
         assert 'Registration successful' in response.data.decode()
 
         response = self.client.post('/login', data=dict(
-                        username='test',
-                        password='test'
+                        username_login='test',
+                        password_login='test'
         ), follow_redirects=True)
 
         assert 'Login successful' in response.data.decode()
