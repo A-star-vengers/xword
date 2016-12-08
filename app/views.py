@@ -13,8 +13,8 @@ from sqlalchemy import not_, and_
 import random
 import json
 
-register_form = ['username', 'email', 'password', 'confirm']
-login_form = ['username', 'password']
+register_form = ['username_register', 'email', 'password_register', 'confirm']
+login_form = ['username_login', 'password_login']
 # submit_form = ['hint', 'answer']  # , 'theme']
 
 app.secret_key = urandom(24)
@@ -69,8 +69,8 @@ def login():
     if request.method == 'POST':
         if validate_table(login_form, request.form):
 
-            username = request.form['username']
-            password = request.form['password']
+            username = request.form['username_login']
+            password = request.form['password_login']
 
             if username == "" or password == "":
                 empty_message = 'Error: Empty username or password'
@@ -120,9 +120,9 @@ def register():
     if request.method == 'POST':
         if validate_table(register_form, request.form):
 
-            username = request.form['username']
+            username = request.form['username_register']
             email = request.form['email']
-            password = request.form['password']
+            password = request.form['password_register']
             confirm = request.form['confirm']
 
             if username == "" or email == "" or \

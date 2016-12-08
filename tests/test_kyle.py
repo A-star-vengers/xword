@@ -59,9 +59,9 @@ class FlaskTestCase(unittest.TestCase):
     def test_logout(self): 
         tester = app.test_client(self)
         response = tester.post('/register', data=dict(
-                        username='test1',
+                        username_register='test1',
                         email='test@gmail.com',
-                        password='test1',
+                        password_register='test1',
                         confirm='test1'
         ), follow_redirects=True)
 
@@ -69,8 +69,8 @@ class FlaskTestCase(unittest.TestCase):
         assert 'Registration successful' in response.data.decode()
 
         response = tester.post('/login', data=dict(
-                        username='test1',
-                        password='test1'
+                        username_login='test1',
+                        password_login='test1'
         ), follow_redirects=True)
 
         assert 'Login successful' in response.data.decode()
@@ -93,17 +93,17 @@ class FlaskTestCase(unittest.TestCase):
     def test_validate_submit_get(self):
         tester = app.test_client(self)
         response = tester.post('/register', data=dict(
-                        username='test1',
+                        username_register='test1',
                         email='test@gmail.com',
-                        password='test1',
+                        password_register='test1',
                         confirm='test1'
         ), follow_redirects=True)
 
         assert 'Registration successful' in response.data.decode()
 
         response = tester.post('/login', data=dict(
-                        username='test1',
-                        password='test1'
+                        username_login='test1',
+                        password_login='test1'
         ), follow_redirects=True)
 
         assert 'Login successful' in response.data.decode()
@@ -112,51 +112,21 @@ class FlaskTestCase(unittest.TestCase):
         response = tester.get('/submit_pairs', follow_redirects=True)
         self.assertIn(b'Submit Hint/Answer Pair', response.data)
 
-#    def test_hint_answer_already_exists(self):
-#        tester = app.test_client(self)
-#        response = tester.post('/register', data=dict(
-#                        username='test1',
-#                        email='test@gmail.com',
-#                        password='test1',
-#                        confirm='test1'
-#        ), follow_redirects=True)
-#
-#        assert 'Registration successful' in response.data.decode()
-#
-#        response = tester.post('/login', data=dict(
-#                        username='test1',
-#                        password='test1'
-#        ), follow_redirects=True)
-#
-#        assert 'Login successful' in response.data.decode()
-#
-#        response = tester.post('/submit_pairs', data=dict(
-#                hint_0='aaa',
-#                answer_0='aaa'), follow_redirects=True)
-#
-#        self.assertIn(b'Submission Successful', response.data)
-#
-#        # response = tester.post('/submit_pairs', data=dict(
-#        #        hint_0='aaa',
-#        #        answer_0='aaa'), follow_redirects=True)
-#
-#        # self.assertIn(b'Error: Hint/Answer pair already exists.', response.data)
-
     def test_browse_puzzles(self):
         tester = app.test_client(self)
 
         response = tester.post('/register', data=dict(
-                        username='test1',
+                        username_register='test1',
                         email='test@gmail.com',
-                        password='test1',
+                        password_register='test1',
                         confirm='test1'
         ), follow_redirects=True)
 
         assert 'Registration successful' in response.data.decode()
 
         response = tester.post('/login', data=dict(
-                        username='test1',
-                        password='test1'
+                        username_login='test1',
+                        password_login='test1'
         ), follow_redirects=True)
 
         assert 'Login successful' in response.data.decode()
@@ -164,20 +134,61 @@ class FlaskTestCase(unittest.TestCase):
 
         self.assertIn(b'Browse existing puzzles to play', response.data)
 
+    def test_selenium_register(self):
+        from selenium import webdriver
+        import time
+      
+        url = 'http://127.0.0.1:5000'
+        email = "test@test.com"
+        username = "test"
+        password = "testpw"
+
+        driver = webdriver.PhantomJS(service_args=['--ignore-ssl-errors=true', '--ssl-protocol=any'])
+        driver.get(url + '/login')
+
+        element = driver.find_element_by_id("register-form-link")
+        element.click()
+
+        time.sleep(3)
+
+        username_elem = driver.find_element_by_xpath("//*[@id=\"username_register\"]")
+        email_elem    = driver.find_element_by_xpath("//*[@id=\"email\"]")
+        password_elem = driver.find_element_by_xpath("//*[@id=\"password_register\"]")
+        confirm_elem  = driver.find_element_by_xpath("//*[@id=\"confirm\"]")
+    
+        time.sleep(3)
+    
+        username_elem.send_keys(username)
+        email_elem.send_keys(email)
+        password_elem.send_keys(password)
+        confirm_elem.send_keys(password) 
+    
+        time.sleep(3)
+        driver.find_element_by_xpath("//*[@id=\"register-submit\"]").click() 
+        time.sleep(3)
+
+        self.assertIn("Registration successful", driver.page_source)
+
+# import datetime
+# driver.maximize_window()
+# fmt = '%f'
+# filename = 'out' + datetime.datetime.now().strftime(fmt) + '.png';
+# driver.save_screenshot(filename)
+
     @check_csrf
     def test_csrf_token_missing(self):
         tester = app.test_client(self)
 
         response = tester.post('/register', data=dict(
-                        username='test1',
+                        username_register='test1',
                         email='test@gmail.com',
-                        password='test1',
+                        password_register='test1',
                         confirm='test1'
         ), follow_redirects=True)
 
         response = tester.post('/login', data=dict(
-                        username='test1',
-                        password='test1'
+                        username_login='test1',
+                        password_login='test1'
         ), follow_redirects=True)
 
         self.assertEqual(response.status_code, 400, msg=response.data.decode())
