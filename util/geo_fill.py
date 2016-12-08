@@ -1,16 +1,17 @@
 import requests
 
+
 def main():
 
     with requests.Session() as s:
 
-        r = s.post("http://127.0.0.1:5000/login", data={
-                    "username" : "test",
-                    "password" : "test"
+        s.post("http://127.0.0.1:5000/login", data={
+                    "username": "test",
+                    "password": "test"
                 }
-            )
+               )
 
-        r = s.post("http://127.0.0.1:5000/create_puzzle", data=dict(
+        s.post("http://127.0.0.1:5000/create_puzzle", data=dict(
                 title="Geography Questions",
                 hint_1="The movement of people from one place to another ",
                 answer_1="migration",
@@ -47,7 +48,7 @@ def main():
                         "things that have value",
                 answer_14="economy"
                 )
-            )
+               )
 
 if __name__ == "__main__":
     main()

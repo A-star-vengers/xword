@@ -18,6 +18,30 @@
     ]
 };*/
 
+// Component for the end game overlay
+Vue.component('xwrd-overlay', {
+    template: '<div class="overlay" v-bind:class="{\'overlay-active\': done}">\
+                <div class="overlay-content">\
+                  <form action="/play_puzzle" method="post">\
+                    <input name="csrf_token" type="hidden" :value="csrfToken">\
+                    <input name="time" type="hidden" :value="totalTime" readonly><br>\
+                    <h2>You finished the puzzle in {{totalTime}} seconds!</h2><br>\
+                    <span>Rating:</span>\
+                    <select name="rating">\
+                      <option value="1">1</option>\
+                      <option value="2">2</option>\
+                      <option value="3">3</option>\
+                      <option value="4">4</option>\
+                      <option value="5" selected>5</option>\
+                    </select>\
+                    <span>stars</span><br>\
+                    <input type="submit" value="Submit">\
+                  </form>\
+                </div>\
+               </div>',
+    props: ['csrfToken', 'totalTime', 'done']
+});
+
 // Component for a single hint
 Vue.component('xwrd-hint', {
     template: '<div>\
@@ -125,30 +149,61 @@ Vue.component('xwrd-time', {
     }
 });
 
+// Component to display the leaderboard
+Vue.component('xwrd-leaderboard', {
+    template: '<div class="leaderboard">\
+                <h3>Leaderboard</h3>\
+                <ol>\
+                    <template v-for="entry in leaderboard">\
+                        <li>\
+                            {{ entry.username }}\
+                            <xwrd-time :time="entry.time*1000"></xwrd-time>\
+                        </li>\
+                    </template>\
+                </ol>\
+               </div>',
+    props: ['leaderboard']
+});
+
 // Component to represent the whole puzzle
 Vue.component('xwrd-puzzle', {
     template: '<div>\
+                <xwrd-overlay\
+                  :csrfToken="csrfToken"\
+                  :totalTime="totalTime"\
+                  :done="done">\
+                </xwrd-overlay>\
                 <center><h1> {{ title }}</h1></center>\
                 <center><h4> Created by {{ creator }}</h4></center>\
                 <center><h4> With answers authored by {{ authors }}</h4></center>\
-                <xwrd-grid\
-                  :nrows="nrows"\
-                  :ncols="ncols"\
-                  :grid="grid"\
-                  :hlRow="hlRow"\
-                  :hlCol="hlCol"\
-                  :hlDir="hlDir">\
-                </xwrd-grid>\
-                <xwrd-time :time="timeElapsed"></xwrd-time>\
-                <div><b>Done:</b> {{ done }}</div>\
-                <xwrd-hints direction="across"\
-                  :hints="hints"\
-                  :grid="grid">\
-                </xwrd-hints>\
-                <xwrd-hints direction="down"\
-                  :hints="hints"\
-                  :grid="grid">\
-                </xwrd-hints>\
+                <div class="panels">\
+                    <div class="left-panel">\
+                        <xwrd-leaderboard :leaderboard="leaderboard">\
+                        </xwrd-leaderboard>\
+                    </div>\
+                    <div class="center-panel">\
+                        <xwrd-grid\
+                          :nrows="nrows"\
+                          :ncols="ncols"\
+                          :grid="grid"\
+                          :hlRow="hlRow"\
+                          :hlCol="hlCol"\
+                          :hlDir="hlDir">\
+                        </xwrd-grid>\
+                    </div>\
+                    <div class="right-panel">\
+                        <xwrd-time :time="timeElapsed"></xwrd-time>\
+                        <div><b>Done:</b> {{ done }}</div>\
+                        <xwrd-hints direction="across"\
+                          :hints="hints"\
+                          :grid="grid">\
+                        </xwrd-hints>\
+                        <xwrd-hints direction="down"\
+                          :hints="hints"\
+                          :grid="grid">\
+                        </xwrd-hints>\
+                    </div>\
+                </div>\
                </div>',
     data: function() {
         var hints = [];
@@ -217,7 +272,7 @@ Vue.component('xwrd-puzzle', {
             totalTime: 0,
         }
     },
-    props: ['title', 'creator', 'authors', 'nrows', 'ncols', 'hintsList'],
+    props: ['title', 'creator', 'authors', 'nrows', 'ncols', 'hintsList', 'csrfToken', 'leaderboard'],
     created: function() {
         bus.$on('key-press', function(event) {
             this.onKeyPress(event);
@@ -308,8 +363,7 @@ Vue.component('xwrd-puzzle', {
             }
             if(numSolved == this.hints.length) {
                 this.done = true;
-                this.totalTime = this.timeElapsed;
-                window.alert('Puzzle finished in '+Math.floor(this.totalTime/1000)+' seconds!');
+                this.totalTime = Math.floor(this.timeElapsed/1000);
             }
         }
     }
@@ -328,6 +382,7 @@ var xwrd = new Vue({
         nrows: puzzleData.nrows,
         ncols: puzzleData.ncols,
         hints: puzzleData.hints,
+        leaderboard: leaderboard
     }
 });
 

@@ -4,6 +4,7 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/puzzle.css') }}">
     <script>
         puzzleData = {{ puzzleData|tojson|safe }};
+        leaderboard = {{ leaderboard|tojson|safe }};
     </script>
     <script src="{{ url_for('static', filename='js/vue.js') }}"></script>
 {% endblock %}
@@ -11,13 +12,16 @@
     {% if message %}
         <p class="lead">{{ message }}<br></p>
     {% endif %}
+
     <div id="xwrd">
         <xwrd-puzzle :title="title"
                      :creator="creator"
                      :authors="authors"
                      :nrows="nrows"
                      :ncols="ncols"
-                     :hints-list="hints">
+                     :hints-list="hints"
+                     csrf-token="{{ csrf_token() }}"
+                     :leaderboard="leaderboard">
         </xwrd-puzzle>
     </div>
 {% endblock %}

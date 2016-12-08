@@ -3,8 +3,6 @@ from app import app
 from app.util import validate_table
 from app.db import db, init_db
 
-from flask import render_template
-
 import flask_wtf
 
 from functools import wraps
@@ -37,7 +35,6 @@ class FlaskTestCase(unittest.TestCase):
         db.session.remove()
         db.drop_all()
 
-
     # Ensure that Flask was set up correctly
     def test_index(self):
         tester = app.test_client(self)
@@ -49,14 +46,13 @@ class FlaskTestCase(unittest.TestCase):
         response = tester.get('/')
         self.assertIn(b'Xword: A Social Crossword Application', response.data)
 
-
     # Ensure that the login page loads correctly
     def test_login_page_loads(self):
         tester = app.test_client(self)
         response = tester.get('/login')
         self.assertIn(b'Login', response.data)
 
-    def test_logout(self): 
+    def test_logout(self):
         tester = app.test_client(self)
         response = tester.post('/register', data=dict(
                         username_register='test1',
@@ -78,8 +74,8 @@ class FlaskTestCase(unittest.TestCase):
         response = tester.get('/logout', follow_redirects=True)
 
         self.assertIn(b'Xword: A Social Crossword Application', response.data)
-        # above should really be something like 'assert render_template('index.html') == response.data'
-
+        # above should really be something like
+        # 'assert render_template('index.html') == response.data'
 
     def test_validate_table(self):
         import flask
@@ -88,7 +84,6 @@ class FlaskTestCase(unittest.TestCase):
         with app.test_request_context('/login'):
             assert flask.request.path == '/login'
             assert not validate_table(['a', 'b'], flask.request.form)
-
 
     def test_validate_submit_get(self):
         tester = app.test_client(self)
@@ -108,9 +103,36 @@ class FlaskTestCase(unittest.TestCase):
 
         assert 'Login successful' in response.data.decode()
 
-
         response = tester.get('/submit_pairs', follow_redirects=True)
         self.assertIn(b'Submit Hint/Answer Pair', response.data)
+
+    def test_hint_answer_already_exists(self):
+        tester = app.test_client(self)
+        response = tester.post('/register', data=dict(
+                        username_register='test1',
+                        email='test@gmail.com',
+                        password_register='test1',
+                        confirm='test1'
+        ), follow_redirects=True)
+
+        assert 'Registration successful' in response.data.decode()
+
+        response = tester.post('/login', data=dict(
+                        username_login='test1',
+                        password_login='test1'
+        ), follow_redirects=True)
+
+        assert 'Login successful' in response.data.decode()
+
+        response = tester.post('/submit_pairs', data=dict(
+                hint_0='aaa',
+                answer_0='aaa'), follow_redirects=True)
+
+        self.assertIn(b'Successful Submissions', response.data)
+
+        # response = tester.post('/submit_pairs', data=dict(
+        #        hint_0='aaa',
+        #        answer_0='aaa'), follow_redirects=True)
 
     def test_browse_puzzles(self):
         tester = app.test_client(self)
@@ -197,4 +219,3 @@ class FlaskTestCase(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
