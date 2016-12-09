@@ -696,8 +696,9 @@ def play_puzzle():
         time = int(request.form.get("time", None))
 
         if not all((puzzle_id, rating, time)):
-            return render_template(
-                'play_puzzle.html', message='An error occured!', puzzleData={})
+            message = "Puzzle ID, rating or completion time missing"
+            return render_template('play_puzzle.html', message=message,
+                                   puzzleData={})
 
         del session['puzzle_id']
         user_id = session['uid']
