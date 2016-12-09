@@ -607,14 +607,9 @@ def create_puzzle():
             if existing_pair is not None:
                 hint_ids[pair] = existing_pair.haid
             else:
-
-                app.logger.info("New Hint Answer Pair")
-
-                # Add the hint/answer pair to the database
-                new_pair = HintAnswerPair(answer, hint, session['uid'])
-                db.session.add(new_pair)
-                db.session.commit()
-                hint_ids[pair] = new_pair.haid
+                message = "Answer/Hint pair {} doesn't exist in the database"
+                return render_template('index.html',
+                                       message=message.format(pair))
 
         word_list = [x[0] for x in pairs]
         print("Word list: ", word_list)
