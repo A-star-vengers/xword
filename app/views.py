@@ -533,6 +533,33 @@ def create_puzzle():
             message = "Error: Need to provide title for puzzle."
             return render_template('index.html', message=message)
 
+        num_rows = post_params.get('num_rows', None)
+        num_cols = post_params.get('num_cols', None)
+
+        def check_dimension(name, value, max_value):
+            if value is None:
+                return "Missing parameter '{}'".format(name)
+            try:
+                value = int(value)
+            except ValueError:
+                return "Invalid {}: '{}'".format(name, value)
+
+            if value < 1:
+                return "{} must be at least 1".format(name)
+
+            if value > max_value:
+                return "{} must be at most {}".format(name, max_value)
+
+            return None
+
+        message = check_dimension("Number of Rows", num_rows, max_xw_size)
+        if message is not None:
+            return render_template('index.html', message=message)
+
+        message = check_dimension("Number of Columns", num_cols, max_xw_size)
+        if message is not None:
+            return render_template('index.html', message=message)
+
         # Sort hints and answers to make sure listed in order
         # e.g. hint_1, hint_2, hint_3, rather that hint_2, hint_1, hint_3
         hint_keys = sorted(filter(lambda x: "hint_" in x, post_params))
@@ -591,7 +618,7 @@ def create_puzzle():
             app.logger.info("Answer: " + answer)
 
             if hint == '' or answer == '':
-                message = "Error: Invalid Request Arguments."
+                message = "Hint and answer must not be empty!"
                 return render_template('index.html', message=message)
 
             pair = (answer, hint)
@@ -607,14 +634,9 @@ def create_puzzle():
             if existing_pair is not None:
                 hint_ids[pair] = existing_pair.haid
             else:
-
-                app.logger.info("New Hint Answer Pair")
-
-                # Add the hint/answer pair to the database
-                new_pair = HintAnswerPair(answer, hint, session['uid'])
-                db.session.add(new_pair)
-                db.session.commit()
-                hint_ids[pair] = new_pair.haid
+                message = "Answer/Hint pair {} doesn't exist in the database"
+                return render_template('index.html',
+                                       message=message.format(pair))
 
         word_list = [x[0] for x in pairs]
         print("Word list: ", word_list)
@@ -639,8 +661,8 @@ def create_puzzle():
         creator = session['uid']
 
         puzzle = CrosswordPuzzle(len(pairs),
-                                 max_xw_size,
-                                 max_xw_size,
+                                 num_rows,
+                                 num_cols,
                                  title,
                                  creator)
         db.session.add(puzzle)
@@ -692,23 +714,27 @@ def random_puzzle_id():
 def play_puzzle():
     if request.method == 'POST':
         puzzle_id = session.get("puzzle_id", None)
-        rating = request.form.get("rating", None)
-        time = request.form.get("time", None)
+        rating = int(request.form.get("rating", None))
+        time = int(request.form.get("time", None))
 
         if not all((puzzle_id, rating, time)):
-            return render_template(
-                'play_puzzle.html', message='An error occured!', puzzleData={})
+            message = "Puzzle ID, rating or completion time missing"
+            return render_template('play_puzzle.html', message=message,
+                                   puzzleData={})
 
         del session['puzzle_id']
         user_id = session['uid']
 
-        time_exists = UserPuzzleTimes.query.filter(
+        prev_time = UserPuzzleTimes.query.filter(
             UserPuzzleTimes.cid == puzzle_id,
             UserPuzzleTimes.uid == user_id
         ).scalar()
 
-        if time_exists is None:
-            db.session.add(UserPuzzleTimes(puzzle_id, user_id, time))
+        if prev_time is not None:
+            print(time, prev_time, prev_time.time)
+            time = min(time, prev_time.time)
+
+        db.session.merge(UserPuzzleTimes(puzzle_id, user_id, time))
         db.session.merge(UserPuzzleRatings(puzzle_id, session['uid'], rating))
         db.session.commit()
 
@@ -747,31 +773,14 @@ def play_puzzle():
 
     def get_uname(uid):
         return User.query.filter_by(uid=uid).first().uname
-    # lambda uid: User.query.filter_by(uid=puzzle.creator).first().uname
-
-    # creator = User.query.filter_by(uid=puzzle.creator).first()
-    # creator_username = creator.uname
     creator_username = get_uname(uid=puzzle.creator)
 
-    # authors = User.query.filter_by(uid=puzzle.creator).first()
-    # authors_string = 'ABC';
     author_uids = [hint.author for hint in raw_hints]
     author_unames = [get_uname(uid) for uid in author_uids]
     author_unique_unames = list(set(author_unames))
 
-    # print('Author UIDs')
-    # print(author_uids)
-
-    # print('Author unames')
-    # print(author_unames)
-
-    # print('Unique Authors')
-    # print(author_unique_unames)
-
     def fmt(x):
         return ', '.join(x[:-1]) + ', and ' + x[-1]
-
-    # f = lambda x: ', '.join(x[:-1]) + ', and ' + x[-1]
 
     if 1 == len(author_unique_unames):
         authors_string = author_unique_unames[0]

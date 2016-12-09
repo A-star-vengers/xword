@@ -1,23 +1,3 @@
-/*puzzleData = {
-    nrows: 6,
-    ncols: 7,
-    hints: [
-        {direction:"across", row:0, col:0, num:1,  answer:"LIBEL", hint:"Defamation in print"},
-        {direction:"across", row:1, col:0, num:6,  answer:"ITUNES", hint:"Apple application that stores music"},
-        {direction:"across", row:2, col:0, num:8,  answer:"SARANAC", hint:"Beer brewed in upstate New York"},
-        {direction:"across", row:3, col:0, num:10, answer:"ALIBABA", hint:"\"Open, sesame!\" speaker"},
-        {direction:"across", row:4, col:1, num:11, answer:"YELPER", hint:"One looking up restaurante reviews on their phone, say"},
-        {direction:"across", row:5, col:2, num:12, answer:"DEERE", hint:"John __ (tractor maker)"},
-        {direction:"down",   row:0, col:0, num:1,  answer:"LISA", hint:"Bart's sister on \"The Simpsons\""},
-        {direction:"down",   row:0, col:1, num:2,  answer:"ITALY", hint:"Country with a red, white and green flag"},
-        {direction:"down",   row:0, col:2, num:3,  answer:"BURIED", hint:"Hid, as in squirrel might an acorn"},
-        {direction:"down",   row:0, col:3, num:4,  answer:"ENABLE", hint:"Allow"},
-        {direction:"down",   row:0, col:4, num:5,  answer:"LENAPE", hint:"Delaware tribe"},
-        {direction:"down",   row:1, col:5, num:7,  answer:"SABER", hint:"__-toothed tiger"},
-        {direction:"down",   row:2, col:6, num:9,  answer:"CARE", hint:"Suffix with Obama"}
-    ]
-};*/
-
 // Component for the end game overlay
 Vue.component('xwrd-overlay', {
     template: '<div class="overlay" v-bind:class="{\'overlay-active\': done}">\
@@ -173,9 +153,10 @@ Vue.component('xwrd-puzzle', {
                   :totalTime="totalTime"\
                   :done="done">\
                 </xwrd-overlay>\
-                <center><h1> {{ title }}</h1></center>\
-                <center><h4> Created by {{ creator }}</h4></center>\
-                <center><h4> With answers authored by {{ authors }}</h4></center>\
+                <div \
+                <h1 style="text-align: center"> {{ title }}</h1>\
+                <h4 style="text-align: center"> Created by {{ creator }}</h4>\
+                <h4 style="text-align: center"> With answers authored by {{ authors }}</h4>\
                 <div class="panels">\
                     <div class="left-panel">\
                         <xwrd-leaderboard :leaderboard="leaderboard">\

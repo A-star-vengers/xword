@@ -185,6 +185,20 @@ $(function()
 
         postForm.append(newField);
 
+        var numRows = $('#num_rows')
+        var numRowsField = $('<input></input>');
+        numRowsField.attr('type', 'hidden');
+        numRowsField.attr('name', 'num_rows');
+        numRowsField.attr('value', numRows.val());
+        postForm.append(numRowsField);
+
+        var numCols = $('#num_cols')
+        var numColsField = $('<input></input>');
+        numColsField.attr('type', 'hidden');
+        numColsField.attr('name', 'num_cols');
+        numColsField.attr('value', numCols.val());
+        postForm.append(numColsField);
+
         $.each(allPairs,
             function(index, value)
             {

@@ -56,15 +56,82 @@ class LoggedInAppTestWithFilledQuestionDb(LoggedInAppTest):
     def setUp(self):
         super(LoggedInAppTestWithFilledQuestionDb, self).setUp()
 
-        self.client.post('/create_puzzle', data=dict(
-                title="Geography Questions",
+        self.client.post('/submit_pairs', data=dict(
                 hint_1="The movement of people from one place to another ",
                 answer_1="migration",
                 hint_2="The number of deaths each year per 1,000 people ",
                 answer_2="deathrate",
                 hint_3="Owners and workers who make products ",
                 answer_3="producers",
+                hint_4="A government in which the king is limited by law ",
+                answer_4="constitutionalmonarchy",
+                hint_5="the way a population is spread out over an area ",
+                answer_5="populationdistribution",
+                hint_6="an economic system in which the central government " +
+                       "controls owns factories, farms, and offices",
+                answer_6="communism",
+                hint_7="a form of government in which all adults take " +
+                       " part in decisions",
+                answer_7="directdemocracy",
+                hint_8="people who move into one country from another ",
+                answer_8="immigrants",
+                hint_9="nations with many industries and advanced technology ",
+                answer_9="developednations",
+                hint_10="a king or queen inherits the throne by birth " +
+                        "and has complete control",
+                answer_10="absolutemonarchy",
+                hint_11="the science that studies population " +
+                        "distribution and change",
+                answer_11="demography",
+                hint_12="a region that belongs to another state ",
+                answer_12="dependency",
+                hint_13="a set of laws that define and often limit a " +
+                        "government's power",
+                answer_13="constitution",
+                hint_14="a system in which people make, exchange, and use " +
+                        "things that have value",
+                answer_14="economy"
                     ), follow_redirects=True)
+
+        self.client.post('/create_puzzle', data=dict(
+            title='Geography',
+            num_rows=25,
+            num_cols=25,
+            hint_1="The movement of people from one place to another ",
+            answer_1="migration",
+            hint_2="The number of deaths each year per 1,000 people ",
+            answer_2="deathrate",
+            hint_3="Owners and workers who make products ",
+            answer_3="producers",
+            hint_4="A government in which the king is limited by law ",
+            answer_4="constitutionalmonarchy",
+            hint_5="the way a population is spread out over an area ",
+            answer_5="populationdistribution",
+            hint_6="an economic system in which the central government " +
+                   "controls owns factories, farms, and offices",
+            answer_6="communism",
+            hint_7="a form of government in which all adults take " +
+                   " part in decisions",
+            answer_7="directdemocracy",
+            hint_8="people who move into one country from another ",
+            answer_8="immigrants",
+            hint_9="nations with many industries and advanced technology ",
+            answer_9="developednations",
+            hint_10="a king or queen inherits the throne by birth " +
+                    "and has complete control",
+            answer_10="absolutemonarchy",
+            hint_11="the science that studies population " +
+                    "distribution and change",
+            answer_11="demography",
+            hint_12="a region that belongs to another state ",
+            answer_12="dependency",
+            hint_13="a set of laws that define and often limit a " +
+                    "government's power",
+            answer_13="constitution",
+            hint_14="a system in which people make, exchange, and use " +
+                    "things that have value",
+            answer_14="economy"
+        ), follow_redirects=True)
 
 
 class LoginTest(AppTest):
@@ -342,12 +409,14 @@ class SubmitPairsTest(LoggedInAppTest):
         self.assertIn(b'Successful Submissions 3', response.data)
 
 
-class CreatePuzzleTest(LoggedInAppTest):
+class CreatePuzzleTest(LoggedInAppTestWithFilledQuestionDb):
 
     def test_create_puzzle(self):
 
         response = self.client.post('/create_puzzle', data=dict(
                 title="Geography Questions",
+                num_rows=25,
+                num_cols=25,
                 hint_1="The movement of people from one place to another ",
                 answer_1="migration",
                 hint_2="The number of deaths each year per 1,000 people ",
@@ -384,14 +453,15 @@ class CreatePuzzleTest(LoggedInAppTest):
                 answer_14="economy"
                     ), follow_redirects=True)
 
-        # print( str(response.data.decode()) )
-
-        assert 'Puzzle submitted successfully' in response.data.decode()
+        msg = b'Puzzle submitted successfully'
+        self.assertIn(msg, response.data)
 
     def test_mismatch_create_puzzle(self):
 
         response = self.client.post('/create_puzzle', data=dict(
                     title="Geography Questions",
+                    num_rows=25,
+                    num_cols=25,
                     hint_1="The movement of people from one place to another",
                     hint_2="The number of deaths each year per 1,000 people",
                     answer_2="deathrate",
@@ -407,6 +477,8 @@ class CreatePuzzleTest(LoggedInAppTest):
     def test_notitle_create_puzzle(self):
 
         response = self.client.post('/create_puzzle', data=dict(
+                    num_rows=25,
+                    num_cols=25,
                     hint_1="The movement of people from one place to another",
                     answer_1="migration",
                     hint_2="The number of deaths each year per 1,000 people",
@@ -420,6 +492,8 @@ class CreatePuzzleTest(LoggedInAppTest):
 
         response = self.client.post('/create_puzzle', data=dict(
                     title="",
+                    num_rows=25,
+                    num_cols=25,
                     hint_1="The movement of people from one place to another",
                     answer_1="migration",
                     hint_2="The number of deaths each year per 1,000 people",
@@ -433,6 +507,8 @@ class CreatePuzzleTest(LoggedInAppTest):
 
         response = self.client.post('/create_puzzle', data=dict(
                     title="Geography Questions",
+                    num_rows=25,
+                    num_cols=25,
                     hint_1="",
                     answer_1=""
                     ), follow_redirects=True)
@@ -443,12 +519,73 @@ class CreatePuzzleTest(LoggedInAppTest):
 
         response = self.client.post('/create_puzzle', data=dict(
                     title="Geography Questions",
+                    num_rows=25,
+                    num_cols=25,
                     hint_1="The movement of people from one place to another",
                     answer_1="\xDE\xAD\xBE\xEF"
                     ), follow_redirects=True)
 
         message = b"must only contain the letters A to Z"
 
+        self.assertIn(message, response.data)
+
+    def test_answer_not_in_db(self):
+        response = self.client.post('/create_puzzle', data=dict(
+            title="Geography Questions",
+            num_rows=25,
+            num_cols=25,
+            hint_1="Not in the database",
+            answer_1="notinthedb"
+                    ), follow_redirects=True)
+
+        message = b"doesn&#39;t exist in the database"
+        self.assertIn(message, response.data)
+
+    def test_missing_dim(self):
+        response = self.client.post('/create_puzzle', data=dict(
+            title="Geography Questions",
+            num_cols=25,
+            hint_1="The movement of people from one place to another",
+            answer_1="migration",
+        ), follow_redirects=True)
+
+        message = b"Missing parameter &#39;Number of Rows&#39;"
+        self.assertIn(message, response.data)
+
+    def test_invalid_dim(self):
+        response = self.client.post('/create_puzzle', data=dict(
+            title="Geography Questions",
+            num_rows='abc',
+            num_cols=25,
+            hint_1 = "The movement of people from one place to another",
+            answer_1 = "migration",
+        ), follow_redirects=True)
+
+        message = b"Invalid Number of Rows"
+        self.assertIn(message, response.data)
+
+    def test_dim_too_small(self):
+        response = self.client.post('/create_puzzle', data=dict(
+            title="Geography Questions",
+            num_rows=0,
+            num_cols=25,
+            hint_1 = "The movement of people from one place to another",
+            answer_1 = "migration",
+        ), follow_redirects=True)
+
+        message = b"Number of Rows must be at least"
+        self.assertIn(message, response.data)
+
+    def test_dim_too_big(self):
+        response = self.client.post('/create_puzzle', data=dict(
+            title="Geography Questions",
+            num_rows=200,
+            num_cols=25,
+            hint_1 = "The movement of people from one place to another",
+            answer_1 = "migration",
+        ), follow_redirects=True)
+
+        message = b"Number of Rows must be at most"
         self.assertIn(message, response.data)
 
 
