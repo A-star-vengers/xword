@@ -173,9 +173,10 @@ Vue.component('xwrd-puzzle', {
                   :totalTime="totalTime"\
                   :done="done">\
                 </xwrd-overlay>\
-                <center><h1> {{ title }}</h1></center>\
-                <center><h4> Created by {{ creator }}</h4></center>\
-                <center><h4> With answers authored by {{ authors }}</h4></center>\
+                <div \
+                <h1 style="text-align: center"> {{ title }}</h1>\
+                <h4 style="text-align: center"> Created by {{ creator }}</h4>\
+                <h4 style="text-align: center"> With answers authored by {{ authors }}</h4>\
                 <div class="panels">\
                     <div class="left-panel">\
                         <xwrd-leaderboard :leaderboard="leaderboard">\
