@@ -750,31 +750,14 @@ def play_puzzle():
 
     def get_uname(uid):
         return User.query.filter_by(uid=uid).first().uname
-    # lambda uid: User.query.filter_by(uid=puzzle.creator).first().uname
-
-    # creator = User.query.filter_by(uid=puzzle.creator).first()
-    # creator_username = creator.uname
     creator_username = get_uname(uid=puzzle.creator)
 
-    # authors = User.query.filter_by(uid=puzzle.creator).first()
-    # authors_string = 'ABC';
     author_uids = [hint.author for hint in raw_hints]
     author_unames = [get_uname(uid) for uid in author_uids]
     author_unique_unames = list(set(author_unames))
 
-    # print('Author UIDs')
-    # print(author_uids)
-
-    # print('Author unames')
-    # print(author_unames)
-
-    # print('Unique Authors')
-    # print(author_unique_unames)
-
     def fmt(x):
         return ', '.join(x[:-1]) + ', and ' + x[-1]
-
-    # f = lambda x: ', '.join(x[:-1]) + ', and ' + x[-1]
 
     if 1 == len(author_unique_unames):
         authors_string = author_unique_unames[0]
