@@ -692,8 +692,8 @@ def random_puzzle_id():
 def play_puzzle():
     if request.method == 'POST':
         puzzle_id = session.get("puzzle_id", None)
-        rating = request.form.get("rating", None)
-        time = request.form.get("time", None)
+        rating = int(request.form.get("rating", None))
+        time = int(request.form.get("time", None))
 
         if not all((puzzle_id, rating, time)):
             return render_template(
@@ -702,13 +702,16 @@ def play_puzzle():
         del session['puzzle_id']
         user_id = session['uid']
 
-        time_exists = UserPuzzleTimes.query.filter(
+        prev_time = UserPuzzleTimes.query.filter(
             UserPuzzleTimes.cid == puzzle_id,
             UserPuzzleTimes.uid == user_id
         ).scalar()
 
-        if time_exists is None:
-            db.session.add(UserPuzzleTimes(puzzle_id, user_id, time))
+        if prev_time is not None:
+            print(time, prev_time, prev_time.time)
+            time = min(time, prev_time.time)
+
+        db.session.merge(UserPuzzleTimes(puzzle_id, user_id, time))
         db.session.merge(UserPuzzleRatings(puzzle_id, session['uid'], rating))
         db.session.commit()
 
