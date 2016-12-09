@@ -533,6 +533,33 @@ def create_puzzle():
             message = "Error: Need to provide title for puzzle."
             return render_template('index.html', message=message)
 
+        num_rows = post_params.get('num_rows', None)
+        num_cols = post_params.get('num_cols', None)
+
+        def check_dimension(name, value, max_value):
+            if value is None:
+                return "Missing parameter '{}'".format(name)
+            try:
+                value = int(value)
+            except ValueError:
+                return "Invalid {}: '{}'".format(name, value)
+
+            if value < 1:
+                return "{} must be at least 1".format(name)
+
+            if value > max_value:
+                return "{} must be at most {}".format(name, max_value)
+
+            return None
+
+        message = check_dimension("Number of Rows", num_rows, max_xw_size)
+        if message is not None:
+            return render_template('index.html', message=message)
+
+        message = check_dimension("Number of Columns", num_cols, max_xw_size)
+        if message is not None:
+            return render_template('index.html', message=message)
+
         # Sort hints and answers to make sure listed in order
         # e.g. hint_1, hint_2, hint_3, rather that hint_2, hint_1, hint_3
         hint_keys = sorted(filter(lambda x: "hint_" in x, post_params))
@@ -634,8 +661,8 @@ def create_puzzle():
         creator = session['uid']
 
         puzzle = CrosswordPuzzle(len(pairs),
-                                 max_xw_size,
-                                 max_xw_size,
+                                 num_rows,
+                                 num_cols,
                                  title,
                                  creator)
         db.session.add(puzzle)
