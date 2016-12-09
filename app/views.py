@@ -591,7 +591,7 @@ def create_puzzle():
             app.logger.info("Answer: " + answer)
 
             if hint == '' or answer == '':
-                message = "Error: Invalid Request Arguments."
+                message = "Hint and answer must not be empty!"
                 return render_template('index.html', message=message)
 
             pair = (answer, hint)
