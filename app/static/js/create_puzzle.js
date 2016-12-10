@@ -146,10 +146,10 @@ $(function()
 
         pairForm.append(
         '<div class="entry_wrap">' +
-            '<h3>Pair ' + (formLength - 3 + 1) + '</h3>' +
+            '<h3>Pair ' + (formLength - 5 + 1) + '</h3>' +
             '<div class="entry input-group col-s-3">' +
-                '<input class="form-control" readonly name="hint_' + (formLength - 3) + '" type="text" value="' + hint + '"/>' +
-                '<input class="form-control" readonly name="answer_' + (formLength - 3) + '" type="text" value="' + answer + '"/>' +
+                '<input class="form-control" readonly name="hint_' + (formLength - 5) + '" type="text" value="' + hint + '"/>' +
+                '<input class="form-control" readonly name="answer_' + (formLength - 5) + '" type="text" value="' + answer + '"/>' +
                 '<span class="input-group-btn">' +
                     '<button class="btn btn-danger btn-remove btn-primary" type="button">' +
                         '<span class="glyphicon glyphicon-minus"></span>' +
