@@ -180,6 +180,11 @@ def submit_pairs():
         message = "Error: Invalid Request Arguments."
         return render_template('index.html', message=message)
 
+    # Check for a maximum length on the number of hint/answer pairs
+    if len(hints) > 100:
+        message = "Error: Too many hint/answer pairs provided."
+        return render_template('index.html', message=message)
+
     bad_pairs = list(filter(lambda x: x[0].split("_")[1] != x[1].split("_")[1],
                             zip(hints, answers)))
 
@@ -574,6 +579,12 @@ def create_puzzle():
         if len(hint_keys) != len(answer_keys):
             message = message_len_hint_answer_keys
             app.logger.warning(message)
+            return render_template('index.html', message=message)
+
+        # Check for a maximum number of hint/answer pairs to include in the
+        # puzzle
+        if len(hint_keys) > 100:
+            message = "Error: Too many hint/answers in puzzle."
             return render_template('index.html', message=message)
 
         # If we decide on a minimum length for crossword puzzle questions

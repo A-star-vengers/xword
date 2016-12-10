@@ -408,6 +408,41 @@ class SubmitPairsTest(LoggedInAppTest):
 
         self.assertIn(b'Successful Submissions 3', response.data)
 
+    def test_too_many_submissions(self):
+        
+        # Need to create a test that attempts to add 101 pairs
+        test_dict = {}
+
+        for x in range(1,102):
+    
+            test_dict["hint_" + str(x)] = str("a" * x)
+            test_dict["answer_" + str(x)] = str("a" * (x + 1))
+            test_dict["theme_" + str(x)] = "Numbers"
+
+        response = self.client.post('/submit_pairs', data=test_dict
+        , follow_redirects=True)
+
+        self.assertIn(b'Too many', response.data)
+
+    def test_pair_len_mismatch(self):
+
+        response = self.client.post('/submit_pairs', data=dict(
+            hint_0="Things pushed around a super market",
+            answer_0="carts",
+            hint_1="After curfew"
+        ), follow_redirects=True)
+
+        self.assertIn(b'Invalid Request Arguments', response.data)
+
+    def test_empty_hint(self):
+
+        response = self.client.post('/submit_pairs', data=dict(
+            hint_0="",
+            answer_0="testing"
+        ), follow_redirects=True)
+
+        self.assertIn(b'Invalid Request Arguments', response.data)
+
 
 class CreatePuzzleTest(LoggedInAppTestWithFilledQuestionDb):
 
@@ -536,7 +571,7 @@ class CreatePuzzleTest(LoggedInAppTestWithFilledQuestionDb):
             num_cols=25,
             hint_1="Not in the database",
             answer_1="notinthedb"
-                    ), follow_redirects=True)
+        ), follow_redirects=True)
 
         message = b"doesn&#39;t exist in the database"
         self.assertIn(message, response.data)
@@ -587,6 +622,12 @@ class CreatePuzzleTest(LoggedInAppTestWithFilledQuestionDb):
 
         message = b"Number of Rows must be at most"
         self.assertIn(message, response.data)
+
+    def test_get_create_puzzle(self):
+
+        response = self.client.get('/create_puzzle', follow_redirects=True)
+
+        self.assertIn(b'Enter Puzzle Title', response.data)
 
 
 class PlayPuzzleTest(LoggedInAppTest):
