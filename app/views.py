@@ -565,6 +565,9 @@ def create_puzzle():
         if message is not None:
             return render_template('index.html', message=message)
 
+        num_rows = int(num_rows)
+        num_cols = int(num_cols)
+
         # Sort hints and answers to make sure listed in order
         # e.g. hint_1, hint_2, hint_3, rather that hint_2, hint_1, hint_3
         hint_keys = sorted(filter(lambda x: "hint_" in x, post_params))
@@ -653,7 +656,7 @@ def create_puzzle():
         print("Word list: ", word_list)
         print("Pairs: ", pairs)
 
-        new_puzzle = Crossword(max_xw_size, max_xw_size, "-", 5000, pairs)
+        new_puzzle = Crossword(num_cols, num_rows, "-", 5000, pairs)
         new_puzzle.compute_crossword(3)
         new_puzzle.order_number_words()
 
