@@ -96,6 +96,7 @@ ENV/
 
 *.swp
 
+SECRET_KEY
 app/demo.db
 app/test.db
 
