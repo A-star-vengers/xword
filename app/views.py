@@ -19,7 +19,14 @@ register_form = ['username_register', 'email', 'password_register', 'confirm']
 login_form = ['username_login', 'password_login']
 # submit_form = ['hint', 'answer']  # , 'theme']
 
-app.secret_key = urandom(24)
+try:
+    with open('SECRET_KEY', 'rb') as secret_file:
+        secret_key = secret_file.read()
+except FileNotFoundError:
+    with open('SECRET_KEY', 'wb') as new_secret_file:
+        secret_key = urandom(24)
+        new_secret_file.write(secret_key)
+app.secret_key = secret_key
 max_xw_size = 25
 max_hint_len = 25
 min_hint_len = 2
