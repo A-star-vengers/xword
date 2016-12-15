@@ -846,4 +846,6 @@ def play_puzzle():
 
     session['puzzle_id'] = selected_id
     return render_template('play_puzzle.html', puzzleData=puzzleData,
-                           leaderboard=leaderboard)
+                           leaderboard=leaderboard,
+                           title=puzzle.title, creator=creator_username,
+                           authors=authors_string)

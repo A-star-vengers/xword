@@ -9,9 +9,25 @@
     <script src="{{ url_for('static', filename='js/vue.js') }}"></script>
 {% endblock %}
 {% block mainbody %}
+ <div align="center">
     {% if message %}
         <p class="lead">{{ message }}<br></p>
     {% endif %}
+
+    {% if title %}
+        <h1 style="text-align: center"> {{ title }}</h1>
+    {% endif %}
+
+    {% if creator %}
+        <h3 style="text-align: center"> Created by {{ creator }}</h3>
+    {% endif %}
+
+    {% if authors %}
+        <h3 style="text-align: center"> With answers authored by {{ authors }}</h3>
+    {% endif %}
+</div> 
+
+
 
     <div id="xwrd">
         <xwrd-puzzle :title="title"
@@ -26,5 +42,6 @@
     </div>
 {% endblock %}
 {% block afterbody %}
+
     <script src="{{ url_for('static', filename='js/puzzle.js') }}"></script>
 {% endblock %}
