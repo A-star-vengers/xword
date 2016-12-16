@@ -27,7 +27,7 @@ except FileNotFoundError:
         secret_key = urandom(24)
         new_secret_file.write(secret_key)
 app.secret_key = secret_key
-max_xw_size = 25
+max_xw_size = 26
 max_hint_len = 25
 min_hint_len = 2
 
